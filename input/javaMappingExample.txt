@@ -1,0 +1,234 @@
+Group1: 
+Occurrences: 
+Notepad_8
+Notepad_7
+Notepad_6
+Notepad_5
+Elements: 
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:383)
+textArea.getDocument().addUndoableEditListener(new UndoableEditListener() {
+    public void undoableEditHappened(UndoableEditEvent e) {
+        undo.addEdit(e.getEdit());
+        undoAction.update();
+        redoAction.update();
+    }
+})
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:380)
+toolBar.add(redoAction)
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:378)
+toolBar.addSeparator()
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:375)
+ediT.add(undoAction)
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:379)
+toolBar.add(undoAction)
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:376)
+ediT.add(redoAction)
+
+UndoAction.java
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:418)
+RedoAction redoAction = new RedoAction(this);
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:415)
+UndoAction undoAction = new UndoAction(this);
+
+RedoAction.java
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:412)
+UndoManager undo = new UndoManager();
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:422)
+private JButton redoButton;
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:422)
+private JButton undoButton;
+
+Group2: 
+Occurrences: 
+Notepad_8
+Notepad_6
+Notepad_4
+Notepad_2
+Elements: 
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:401)
+private JButton pasteButton;
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Actions.java:464)
+public void cuT() {
+    n.getTextArea().cut();
+}
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:401)
+private JButton copyButton;
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Actions.java:476)
+public void pastE() {
+    n.getTextArea().paste();
+}
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:401)
+private JButton cutButton;
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Actions.java:470)
+public void copY() {
+    n.getTextArea().copy();
+}
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:306)
+toolBar.add(pasteButton = new JButton(new ImageIcon(this.getClass().getResource("images/paste.gif"))))
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:312)
+cuT.addActionListener(new ActionListener() {
+    public void actionPerformed(ActionEvent ae) {
+        actions.cuT();
+    }
+})
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:310)
+pasteButton.setToolTipText("Paste")
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:298)
+ediT.add(pastE = new JMenuItem("Paste", new ImageIcon(this.getClass().getResource("images/paste.gif"))))
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:308)
+cutButton.setToolTipText("Cut")
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:309)
+copyButton.setToolTipText("Copy")
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:300)
+cuT.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK))
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:301)
+copY.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_C, ActionEvent.CTRL_MASK))
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:333)
+copyButton.addActionListener(new ActionListener() {
+    public void actionPerformed(ActionEvent ae) {
+        actions.copY();
+    }
+})
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:302)
+pastE.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_V, ActionEvent.CTRL_MASK))
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:305)
+toolBar.add(copyButton = new JButton(new ImageIcon(this.getClass().getResource("images/copy.gif"))))
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:296)
+ediT.add(cuT = new JMenuItem("Cut", new ImageIcon(this.getClass().getResource("images/cut.gif"))))
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:304)
+toolBar.add(cutButton = new JButton(new ImageIcon(this.getClass().getResource("images/cut.gif"))))
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:322)
+pastE.addActionListener(new ActionListener() {
+    public void actionPerformed(ActionEvent ae) {
+        actions.pastE();
+    }
+})
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:328)
+cutButton.addActionListener(new ActionListener() {
+    public void actionPerformed(ActionEvent ae) {
+        actions.cuT();
+    }
+})
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:338)
+pasteButton.addActionListener(new ActionListener() {
+    public void actionPerformed(ActionEvent ae) {
+        actions.pastE();
+    }
+})
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:297)
+ediT.add(copY = new JMenuItem("Copy", new ImageIcon(this.getClass().getResource("images/copy.gif"))))
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:317)
+copY.addActionListener(new ActionListener() {
+    public void actionPerformed(ActionEvent ae) {
+        actions.copY();
+    }
+})
+
+Group3: 
+Occurrences: 
+Notepad_8
+Notepad_7
+Notepad_3
+Notepad_4
+Elements: 
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:345)
+ediT.add(finD = new JMenuItem("Find", new ImageIcon(this.getClass().getResource("images/find.gif"))))
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:355)
+toolBar.add(findButton = new JButton(new ImageIcon(this.getClass().getResource("images/find.gif"))))
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:358)
+finD.addActionListener(new ActionListener() {
+    public void actionPerformed(ActionEvent ae) {
+        actions.finD();
+    }
+})
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:353)
+finD.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F, ActionEvent.CTRL_MASK))
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:369)
+findButton.addActionListener(new ActionListener() {
+    public void actionPerformed(ActionEvent ae) {
+        actions.finD();
+    }
+})
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:363)
+findNexT.addActionListener(new ActionListener() {
+    public void actionPerformed(ActionEvent ae) {
+        actions.findNexT();
+    }
+})
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:354)
+findNexT.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, ActionEvent.CTRL_MASK))
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:346)
+ediT.add(findNexT = new JMenuItem("Find Next"))
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:356)
+findButton.setToolTipText("Find")
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:405)
+private JButton findButton;
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Actions.java:509)
+public void findNexT() {
+    n.getTextArea().select(n.getTextArea().getText().indexOf(findword, ((int) (n.getTextArea().getText().indexOf(findword))) + 1), n.getTextArea().getText().indexOf(findword, ((int) (n.getTextArea().getText().indexOf(findword))) + 1));
+}
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:408)
+private JMenuItem findNexT;
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Actions.java:486)
+public void finD() {
+    try {
+        findword = JOptionPane.showInputDialog("Type the word to find");
+        while (n.getTextArea().getText().indexOf(findword) == (-1)) {
+            JOptionPane.showMessageDialog(null, "Word not found!", "No match", JOptionPane.WARNING_MESSAGE);
+            findword = JOptionPane.showInputDialog("Type the word to find");
+        } 
+        n.getTextArea().select(n.getTextArea().getText().indexOf(findword), n.getTextArea().getText().indexOf(findword) + findword.length());
+    } catch (Exception ex) {
+        JOptionPane.showMessageDialog(null, "Search canceled", "Abourted", JOptionPane.WARNING_MESSAGE);
+    }
+}
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Notepad.java:408)
+private JMenuItem finD;
+
+(/Users/AK122272/Desktop/example_Notepad/variants/variants/Notepad_8/Actions.java:481)
+private String findword;
+

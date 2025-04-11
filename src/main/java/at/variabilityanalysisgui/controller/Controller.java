@@ -1,0 +1,322 @@
+package at.variabilityanalysisgui.controller;
+
+import at.variabilityanalysisgui.model.Difference;
+import at.variabilityanalysisgui.model.Group;
+import javafx.fxml.FXML;
+import javafx.scene.control.Label;
+
+import javafx.collections.FXCollections;
+
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
+import javafx.application.Platform;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+import javafx.scene.Node;
+import javafx.stage.Window;
+import at.variabilityanalysisgui.model.Element;
+import at.variabilityanalysisgui.view.FeatureTreeCell;
+import at.variabilityanalysisgui.view.FeatureTreeNode;
+import at.variabilityanalysisgui.parser.InputParser;
+
+
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+public class Controller {
+
+    @FXML private TreeView<FeatureTreeNode> featureTreeView;
+    @FXML private TextField searchTextField;
+    @FXML private Button filterButton;
+    @FXML private Button upButton;
+    @FXML private Button confirmButton;
+    @FXML private Button downButton;
+    @FXML private MenuItem saveDecisionsMenuItem;
+
+    // Detail Pane
+    @FXML private ScrollPane detailScrollPane;
+    @FXML private VBox detailsPane;
+    @FXML private Label detailLocationLabel;
+    @FXML private TextArea detailLocationTextArea;
+    @FXML private Label detailGroupNameLabel;
+    @FXML private TextField detailGroupNameTextField;
+    @FXML private Label detailOccurrenceLabel;
+    @FXML private ListView<String> detailOccurrencesListView;
+    @FXML private ListView<Element> detailElementsListView;
+
+
+    private InputParser parser = new InputParser();
+    private List<Group> originalGroups;
+    private TreeItem<FeatureTreeNode> rootNode;
+
+    private TreeItem<FeatureTreeNode> currentDetailItem = null;
+
+
+    @FXML
+    public void initialize() {
+        // Setup TreeView with custom cell factory
+        featureTreeView.setCellFactory(tv -> new FeatureTreeCell(this)); // Pass controller reference
+
+        // Create an invisible root item
+        rootNode = new TreeItem<>(new FeatureTreeNode(new Difference())); // Dummy root node
+        featureTreeView.setRoot(rootNode);
+        featureTreeView.setShowRoot(false);
+
+        // selection model
+        featureTreeView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if(oldValue != null) {
+                oldValue.setValue(oldValue.getValue()); //refresh FeatureTreeCell
+                if(oldValue.getValue().isGroup()) {
+                    (oldValue.getValue().getData()).getName().unbind();
+                } else {
+                    (oldValue.getValue().getData()).getName().unbind();
+                }
+            }
+            if (newValue != null && newValue.getValue() != null) {
+                FeatureTreeNode node = newValue.getValue();
+                showDetailsPane(node.getData(), newValue);
+            }
+        });
+
+        // Listener for search/filter
+        searchTextField.textProperty().addListener((obs, oldVal, newVal) -> filterTreeView(newVal));
+
+        // Configure the optional detail elements list view display
+        detailElementsListView.setCellFactory(lv -> new ListCell<Element>() {
+            @Override
+            protected void updateItem(Element item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null); setGraphic(null);
+                } else {
+                    VBox vbox = new VBox(2);
+                    Label label = new Label(item.getLocation());
+                    label.setStyle("-fx-font-weight: bold;");
+                    vbox.getChildren().add(label);
+                    if (item.getDescription() != null && !item.getDescription().isEmpty()) {
+                        Label descLabel = new Label(item.getDescription());
+                        descLabel.setWrapText(true);
+                        vbox.getChildren().add(descLabel);
+                    }
+                    setGraphic(vbox);
+                    setText(null);
+                }
+            }
+        });
+    }
+
+    private void populateTreeView(List<Group> groups) {
+        rootNode.getChildren().clear();
+
+        if (groups == null) return;
+
+        for (Group group : groups) {
+            FeatureTreeNode groupNodeData = new FeatureTreeNode(group);
+            TreeItem<FeatureTreeNode> groupItem = new TreeItem<>(groupNodeData);
+            groupItem.setExpanded(false);
+
+            // Add elements as children
+            if (group.getElements() != null) {
+                for (Element element : group.getElements()) {
+                    FeatureTreeNode elementNodeData = new FeatureTreeNode(element);
+                    TreeItem<FeatureTreeNode> elementItem = new TreeItem<>(elementNodeData);
+                    groupItem.getChildren().add(elementItem);
+                }
+            }
+            rootNode.getChildren().add(groupItem);
+        }
+        featureTreeView.getSelectionModel().clearSelection();
+    }
+
+    private void filterTreeView(String filterText) {
+        rootNode.getChildren().clear();
+
+        if (originalGroups == null) return;
+
+        String lowerCaseFilter;
+        if (filterText == null) {
+            lowerCaseFilter = "";
+        } else {
+            lowerCaseFilter = filterText.toLowerCase().trim();
+        }
+
+        if (lowerCaseFilter.isEmpty()) {
+            populateTreeView(originalGroups);
+            return;
+        }
+
+        List<Group> filtered = originalGroups.stream()
+                .filter(group -> group.getName().get().toLowerCase().contains(lowerCaseFilter)
+                )
+                .collect(Collectors.toList());
+
+        populateTreeView(filtered);
+    }
+
+
+    // Actions for Buttons
+
+    public void handleEditAction(TreeItem<FeatureTreeNode> item) {
+        System.out.println("Handle Edit Action Triggered - Not Implemented");
+    }
+
+    public void handleDeleteAction(TreeItem<FeatureTreeNode> item) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirm Deletion");
+        alert.setHeaderText("Remove '" + item.getValue().getDisplayName() + "'?");
+        alert.setContentText("Are you sure you want to remove this item from the view?");
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            TreeItem<FeatureTreeNode> parent = item.getParent();
+            if (parent != null) {
+                parent.getChildren().remove(item);
+                System.out.println("Removed item: " + item.getValue().getDisplayName());
+            }
+        }
+    }
+
+    public void handleMoreAction(TreeItem<FeatureTreeNode> item, Node anchorNode) {
+        System.out.println("More Action Triggered - Not Implemented");
+    }
+
+    // Detail Pane
+    private void showDetailsPane(Difference diff, TreeItem<FeatureTreeNode> item) {
+        if (diff instanceof Group) {
+            showDetailsPaneGroup((Group) diff, item);
+        } else if (diff instanceof Element) {
+            showDetailsPaneElement((Element) diff, item);
+        } else {
+            System.out.println("No details available for this item.");
+            hideDetailsPane();
+        }
+    }
+
+    private void showDetailsPaneGroup(Group group, TreeItem<FeatureTreeNode> item) {
+        currentDetailItem = item;
+        detailGroupNameTextField.setText(group.getName().get());
+        group.getName().bind(detailGroupNameTextField.textProperty());
+        detailElementsListView.setItems(FXCollections.observableArrayList(group.getElements()));
+
+        detailOccurrencesListView.setItems(FXCollections.observableArrayList(group.getOccurrences()));
+        detailGroupNameTextField.setEditable(true);
+        detailLocationLabel.setVisible(false);
+        detailLocationLabel.setManaged(false);
+        detailLocationTextArea.setVisible(false);
+        detailLocationTextArea.setManaged(false);
+        detailOccurrenceLabel.setVisible(true);
+        detailOccurrenceLabel.setManaged(true);
+        detailOccurrencesListView.setVisible(true);
+        detailOccurrencesListView.setManaged(true);
+        detailScrollPane.setVisible(true);
+        detailScrollPane.setManaged(true);
+    }
+
+    private void showDetailsPaneElement(Element element, TreeItem<FeatureTreeNode> item) {
+        currentDetailItem = item;
+        detailGroupNameTextField.setText(element.getName().get());
+        element.getName().bind(detailGroupNameTextField.textProperty());
+        detailElementsListView.setItems(FXCollections.observableArrayList(element));
+
+        detailLocationTextArea.setText(element.getLocation());
+        detailGroupNameTextField.setEditable(true);
+        detailLocationLabel.setVisible(true);
+        detailLocationLabel.setManaged(true);
+        detailLocationTextArea.setEditable(false);
+        detailLocationTextArea.setVisible(true);
+        detailLocationTextArea.setManaged(true);
+        detailOccurrenceLabel.setVisible(false);
+        detailOccurrenceLabel.setManaged(false);
+        detailOccurrencesListView.setVisible(false);
+        detailOccurrencesListView.setManaged(false);
+        detailScrollPane.setVisible(true);
+        detailScrollPane.setManaged(true);
+    }
+
+    @FXML
+    private void handleCloseDetails() {
+        hideDetailsPane();
+    }
+
+    private void hideDetailsPane() {
+        detailScrollPane.setVisible(false);
+        detailScrollPane.setManaged(false);
+        currentDetailItem = null;
+        detailOccurrencesListView.setItems(FXCollections.emptyObservableList());
+        detailElementsListView.setItems(FXCollections.emptyObservableList());
+    }
+
+
+    // Actions for Menu Buttons
+    @FXML
+    private void handleHierarchyUpAction() {
+        System.out.println("Hierarchie Up Action Triggered - Not Implemented");
+    }
+
+    @FXML
+    private void handleConfirmAction() {
+        System.out.println("Confirm Action Triggered - Not Implemented");
+    }
+
+    @FXML
+    private void handleHierarchyDownAction() {
+        System.out.println("Hierarchie Down Action Triggered - Not Implemented");
+    }
+
+    @FXML
+    private void handleFilterAction() {
+        System.out.println("Filter Action Triggered - Not Implemented");
+    }
+
+    @FXML
+    private void handleLoadAction() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open Difference Report File");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
+        fileChooser.setInitialDirectory(new File("./"));
+        File selectedFile = fileChooser.showOpenDialog(getWindow());
+
+        if (selectedFile != null) {
+            try {
+                originalGroups = parser.parse(selectedFile.getAbsolutePath());
+                populateTreeView(originalGroups); // Populate with parsed data
+                saveDecisionsMenuItem.setDisable(false);
+                searchTextField.clear();
+                hideDetailsPane(); // Hide details when new file loaded
+            } catch (IOException e) {
+                showErrorDialog("Error Parsing File", "Could not read or parse the file:\n" + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @FXML
+    private void handleSaveAction() {
+        System.out.println("Save Action Triggered - Not Implemented");
+    }
+
+
+    @FXML
+    private void handleExit() {
+        Platform.exit();
+    }
+
+    // Main window
+    private Window getWindow() {
+        return featureTreeView.getScene().getWindow();
+    }
+
+    // Error dialogs
+    private void showErrorDialog(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.initOwner(getWindow());
+        alert.showAndWait();
+    }
+}
