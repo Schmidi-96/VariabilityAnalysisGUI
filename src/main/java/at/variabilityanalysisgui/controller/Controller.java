@@ -2,6 +2,9 @@ package at.variabilityanalysisgui.controller;
 
 import at.variabilityanalysisgui.model.Difference;
 import at.variabilityanalysisgui.model.Group;
+import at.variabilityanalysisgui.view.DifferenceDirectory;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 
@@ -12,9 +15,10 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.application.Platform;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
+import java.util.*;
 
 import javafx.scene.Node;
 import javafx.stage.Window;
@@ -24,8 +28,12 @@ import at.variabilityanalysisgui.view.FeatureTreeNode;
 import at.variabilityanalysisgui.parser.InputParser;
 
 
-import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+import static at.variabilityanalysisgui.model.Element.ElementType.IEC61499;
+import static at.variabilityanalysisgui.model.Element.ElementType.JAVA;
 
 public class Controller {
 
@@ -70,11 +78,7 @@ public class Controller {
         featureTreeView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if(oldValue != null) {
                 oldValue.setValue(oldValue.getValue()); //refresh FeatureTreeCell
-                if(oldValue.getValue().isGroup()) {
-                    (oldValue.getValue().getData()).getName().unbind();
-                } else {
-                    (oldValue.getValue().getData()).getName().unbind();
-                }
+                oldValue.getValue().getData().getName().unbind();
             }
             if (newValue != null && newValue.getValue() != null) {
                 FeatureTreeNode node = newValue.getValue();
@@ -94,7 +98,7 @@ public class Controller {
                     setText(null); setGraphic(null);
                 } else {
                     VBox vbox = new VBox(2);
-                    Label label = new Label(item.getLocation());
+                    Label label = new Label(item.getLocationDisplayString());
                     label.setStyle("-fx-font-weight: bold;");
                     vbox.getChildren().add(label);
                     if (item.getDescription() != null && !item.getDescription().isEmpty()) {
@@ -119,17 +123,71 @@ public class Controller {
             TreeItem<FeatureTreeNode> groupItem = new TreeItem<>(groupNodeData);
             groupItem.setExpanded(false);
 
+            createHierarchy(groupItem, groupNodeData);
+
             // Add elements as children
             if (group.getElements() != null) {
                 for (Element element : group.getElements()) {
                     FeatureTreeNode elementNodeData = new FeatureTreeNode(element);
                     TreeItem<FeatureTreeNode> elementItem = new TreeItem<>(elementNodeData);
-                    groupItem.getChildren().add(elementItem);
+                    ObservableList<TreeItem<FeatureTreeNode>> children = groupItem.getChildren();
+
+                    while(true) {
+                        Optional<TreeItem<FeatureTreeNode>> c = children.stream()
+                                .filter(child -> child.getValue().getType() == FeatureTreeNode.DataType.CONTAINER)
+                                .filter(child -> ((Element) elementItem.getValue().getData()).getLocationDisplayString().startsWith(((DifferenceDirectory)child.getValue().getData()).getPath()))
+                                .findFirst();
+                        if (!c.isPresent()) break;
+                        else {
+                            children = c.get().getChildren();
+                        }
+                    }
+                    children.add(elementItem);
                 }
             }
+            colapsebeginning(groupItem);
             rootNode.getChildren().add(groupItem);
         }
         featureTreeView.getSelectionModel().clearSelection();
+    }
+
+    private void colapsebeginning(TreeItem<FeatureTreeNode> groupItem) {
+        if(groupItem.getChildren().size() == 1 && groupItem.getChildren().get(0).getValue().getType() == FeatureTreeNode.DataType.CONTAINER) {
+            TreeItem<FeatureTreeNode> oldChild = groupItem.getChildren().get(0);
+            colapsebeginning(oldChild);
+            ObservableList<TreeItem<FeatureTreeNode>> newChildren = oldChild.getChildren();
+            groupItem.getChildren().clear();
+            for (TreeItem<FeatureTreeNode> childItem : newChildren) {
+                groupItem.getChildren().add(childItem);
+            }
+        }
+    }
+
+
+    private void createHierarchy(TreeItem<FeatureTreeNode> groupItem, FeatureTreeNode groupNodeData) {
+        HashMap<Element.ElementType, String> hierarchyMap = new HashMap<>();
+        hierarchyMap.put(JAVA, "/");
+        hierarchyMap.put(IEC61499, ";");
+        List<Element> elements = ((Group) groupNodeData.getData()).getElements();
+        for (Element element : elements) {
+            String[] pathParts = element.getLocationDisplayString().split(hierarchyMap.get(element.getType()));
+            ObservableList<TreeItem<FeatureTreeNode>> children = groupItem.getChildren();
+            for(int i=0; i<pathParts.length; i++) {
+                // Check if the path part already exists in the children
+                int fi = i;
+                Optional<TreeItem<FeatureTreeNode>> existingChild = children.stream()
+                        .filter(child -> child.getValue().getDisplayName().equals(pathParts[fi]))
+                        .findFirst();
+                if (existingChild.isPresent()) {
+                    children = existingChild.get().getChildren();
+                } else {
+                    DifferenceDirectory con = new DifferenceDirectory(String.join(hierarchyMap.get(element.getType()), Arrays.asList(pathParts).subList(0, i+1)), hierarchyMap.get(element.getType()));
+                    TreeItem<FeatureTreeNode> conTreeItem = new TreeItem<>(new FeatureTreeNode(con));
+                    children.add(conTreeItem);
+                    children = conTreeItem.getChildren();
+                }
+            }
+        }
     }
 
     private void filterTreeView(String filterText) {
@@ -222,7 +280,7 @@ public class Controller {
         element.getName().bind(detailGroupNameTextField.textProperty());
         detailElementsListView.setItems(FXCollections.observableArrayList(element));
 
-        detailLocationTextArea.setText(element.getLocation());
+        detailLocationTextArea.setText(element.getLocationDisplayString());
         detailGroupNameTextField.setEditable(true);
         detailLocationLabel.setVisible(true);
         detailLocationLabel.setManaged(true);

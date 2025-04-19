@@ -5,22 +5,32 @@ import at.variabilityanalysisgui.model.Group;
 import at.variabilityanalysisgui.model.Element;
 
 public class FeatureTreeNode {
+
+    public enum DataType {
+        GROUP, CONTAINER, ELEMENT
+    }
+
     private final Difference data;
-    private final boolean isGroup;
+    private final DataType type;
 
     public FeatureTreeNode(Group group) {
         this.data = group;
-        this.isGroup = true;
+        this.type = DataType.GROUP;
     }
 
     public FeatureTreeNode(Element element) {
         this.data = element;
-        this.isGroup = false;
+        this.type = DataType.ELEMENT;
     }
 
     public FeatureTreeNode(Difference data) {
         this.data = data;
-        this.isGroup = false;
+        this.type = DataType.CONTAINER;
+    }
+
+    public FeatureTreeNode(DifferenceDirectory dir) {
+        this.data = dir;
+        this.type = DataType.CONTAINER;
     }
 
 
@@ -32,8 +42,8 @@ public class FeatureTreeNode {
         return data.getName().get();
     }
 
-    public boolean isGroup() {
-        return isGroup;
+    public DataType getType() {
+        return type;
     }
 
     @Override

@@ -97,7 +97,7 @@ public class InputParser {
             } else if (colon > 0){
                 name = "Line " + line.substring(colon+1, line.length()-1);
             }
-            return new Element(name, line, description.toString());
+            return new Element(name, Element.ElementType.JAVA, line, description.toString());
         }
         return null;
     }
@@ -110,7 +110,7 @@ public class InputParser {
             int indexOld = connection[0].lastIndexOf(';');
             int indexNew = connection[1].lastIndexOf(';');
             if (indexOld != -1 && indexNew != -1) {
-                location = connection[0].substring(indexOld);
+                location = connection[0].substring(0, indexOld);
                 name = connection[0].substring(indexOld+1) + " -> " + connection[1].substring(indexNew+1);
             }
         } else {
@@ -120,7 +120,7 @@ public class InputParser {
                 name = line.substring(index+1);
             }
         }
-        return new Element(name, location, description);
+        return new Element(name, Element.ElementType.IEC61499, location, description);
     }
 
 

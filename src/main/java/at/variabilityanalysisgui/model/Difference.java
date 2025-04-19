@@ -1,5 +1,6 @@
 package at.variabilityanalysisgui.model;
 
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public class Difference {
@@ -7,5 +8,9 @@ public class Difference {
 
     public StringProperty getName() {
         return name;
+    }
+
+    public void setName(SimpleStringProperty simpleStringProperty) {
+        this.name = simpleStringProperty; //TODO delete later again just for testing
     }
 }

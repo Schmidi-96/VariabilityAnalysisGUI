@@ -1,6 +1,7 @@
 package at.variabilityanalysisgui.view;
 
 import at.variabilityanalysisgui.controller.Controller;
+import at.variabilityanalysisgui.model.Element;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
@@ -36,7 +37,7 @@ public class FeatureTreeCell extends TreeCell<FeatureTreeNode> {
 
         // Action handlers
         editButton.setOnAction(event -> {
-            if (getItem() != null && getItem().isGroup()) {
+            if (getItem() != null && getItem().getType() == FeatureTreeNode.DataType.GROUP) {
                 controller.handleEditAction(getTreeItem());
             }
         });
