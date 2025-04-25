@@ -9,8 +9,4 @@ public class Difference {
     public StringProperty getName() {
         return name;
     }
-
-    public void setName(SimpleStringProperty simpleStringProperty) {
-        this.name = simpleStringProperty; //TODO delete later again just for testing
-    }
 }

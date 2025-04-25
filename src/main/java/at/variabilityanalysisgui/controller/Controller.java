@@ -11,6 +11,7 @@ import javafx.scene.control.Label;
 import javafx.collections.FXCollections;
 
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.application.Platform;
@@ -37,24 +38,42 @@ import static at.variabilityanalysisgui.model.Element.ElementType.JAVA;
 
 public class Controller {
 
-    @FXML private TreeView<FeatureTreeNode> featureTreeView;
-    @FXML private TextField searchTextField;
-    @FXML private Button filterButton;
-    @FXML private Button upButton;
-    @FXML private Button confirmButton;
-    @FXML private Button downButton;
-    @FXML private MenuItem saveDecisionsMenuItem;
+    @FXML
+    private TreeView<FeatureTreeNode> featureTreeView;
+    @FXML
+    private TextField searchTextField;
+    @FXML
+    private Button filterButton;
+    @FXML
+    private Button upButton;
+    @FXML
+    private Button confirmButton;
+    @FXML
+    private Button downButton;
+    @FXML
+    private MenuItem saveDecisionsMenuItem;
 
     // Detail Pane
-    @FXML private ScrollPane detailScrollPane;
-    @FXML private VBox detailsPane;
-    @FXML private Label detailLocationLabel;
-    @FXML private TextArea detailLocationTextArea;
-    @FXML private Label detailGroupNameLabel;
-    @FXML private TextField detailGroupNameTextField;
-    @FXML private Label detailOccurrenceLabel;
-    @FXML private ListView<String> detailOccurrencesListView;
-    @FXML private ListView<Element> detailElementsListView;
+    @FXML
+    private ScrollPane detailScrollPane;
+    @FXML
+    private VBox detailsPane;
+    @FXML
+    private HBox detailsNameHBox;
+    @FXML
+    private Label detailLocationLabel;
+    @FXML
+    private TextArea detailLocationTextArea;
+    @FXML
+    private Label detailGroupNameLabel;
+    @FXML
+    private TextField detailGroupNameTextField;
+    @FXML
+    private Label detailOccurrenceLabel;
+    @FXML
+    private ListView<String> detailOccurrencesListView;
+    @FXML
+    private ListView<Element> detailElementsListView;
 
 
     private InputParser parser = new InputParser();
@@ -62,6 +81,8 @@ public class Controller {
     private TreeItem<FeatureTreeNode> rootNode;
 
     private TreeItem<FeatureTreeNode> currentDetailItem = null;
+
+    private TreeItem<FeatureTreeNode> draggedItem = null;
 
 
     @FXML
@@ -76,7 +97,7 @@ public class Controller {
 
         // selection model
         featureTreeView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            if(oldValue != null) {
+            if (oldValue != null) {
                 oldValue.setValue(oldValue.getValue()); //refresh FeatureTreeCell
                 oldValue.getValue().getData().getName().unbind();
             }
@@ -95,7 +116,8 @@ public class Controller {
             protected void updateItem(Element item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
-                    setText(null); setGraphic(null);
+                    setText(null);
+                    setGraphic(null);
                 } else {
                     VBox vbox = new VBox(2);
                     Label label = new Label(item.getLocationDisplayString());
@@ -132,10 +154,10 @@ public class Controller {
                     TreeItem<FeatureTreeNode> elementItem = new TreeItem<>(elementNodeData);
                     ObservableList<TreeItem<FeatureTreeNode>> children = groupItem.getChildren();
 
-                    while(true) {
+                    while (true) {
                         Optional<TreeItem<FeatureTreeNode>> c = children.stream()
                                 .filter(child -> child.getValue().getType() == FeatureTreeNode.DataType.CONTAINER)
-                                .filter(child -> ((Element) elementItem.getValue().getData()).getLocationDisplayString().startsWith(((DifferenceDirectory)child.getValue().getData()).getPath()))
+                                .filter(child -> ((Element) elementItem.getValue().getData()).getLocationDisplayString().startsWith(((DifferenceDirectory) child.getValue().getData()).getPath()))
                                 .findFirst();
                         if (!c.isPresent()) break;
                         else {
@@ -152,7 +174,7 @@ public class Controller {
     }
 
     private void colapsebeginning(TreeItem<FeatureTreeNode> groupItem) {
-        if(groupItem.getChildren().size() == 1 && groupItem.getChildren().get(0).getValue().getType() == FeatureTreeNode.DataType.CONTAINER) {
+        if (groupItem.getChildren().size() == 1 && groupItem.getChildren().get(0).getValue().getType() == FeatureTreeNode.DataType.CONTAINER) {
             TreeItem<FeatureTreeNode> oldChild = groupItem.getChildren().get(0);
             colapsebeginning(oldChild);
             ObservableList<TreeItem<FeatureTreeNode>> newChildren = oldChild.getChildren();
@@ -172,7 +194,7 @@ public class Controller {
         for (Element element : elements) {
             String[] pathParts = element.getLocationDisplayString().split(hierarchyMap.get(element.getType()));
             ObservableList<TreeItem<FeatureTreeNode>> children = groupItem.getChildren();
-            for(int i=0; i<pathParts.length; i++) {
+            for (int i = 0; i < pathParts.length; i++) {
                 // Check if the path part already exists in the children
                 int fi = i;
                 Optional<TreeItem<FeatureTreeNode>> existingChild = children.stream()
@@ -181,7 +203,7 @@ public class Controller {
                 if (existingChild.isPresent()) {
                     children = existingChild.get().getChildren();
                 } else {
-                    DifferenceDirectory con = new DifferenceDirectory(String.join(hierarchyMap.get(element.getType()), Arrays.asList(pathParts).subList(0, i+1)), hierarchyMap.get(element.getType()));
+                    DifferenceDirectory con = new DifferenceDirectory(String.join(hierarchyMap.get(element.getType()), Arrays.asList(pathParts).subList(0, i + 1)), hierarchyMap.get(element.getType()));
                     TreeItem<FeatureTreeNode> conTreeItem = new TreeItem<>(new FeatureTreeNode(con));
                     children.add(conTreeItem);
                     children = conTreeItem.getChildren();
@@ -230,11 +252,7 @@ public class Controller {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            TreeItem<FeatureTreeNode> parent = item.getParent();
-            if (parent != null) {
-                parent.getChildren().remove(item);
-                System.out.println("Removed item: " + item.getValue().getDisplayName());
-            }
+            deleteItem(item);
         }
     }
 
@@ -248,22 +266,44 @@ public class Controller {
             showDetailsPaneGroup((Group) diff, item);
         } else if (diff instanceof Element) {
             showDetailsPaneElement((Element) diff, item);
+        } else if (diff instanceof DifferenceDirectory) {
+            showDetailsPaneDifferenceDirectory((DifferenceDirectory) diff, item);
         } else {
             System.out.println("No details available for this item.");
             hideDetailsPane();
         }
     }
 
+    private void showDetailsPaneDifferenceDirectory(DifferenceDirectory dir, TreeItem<FeatureTreeNode> item) {
+        currentDetailItem = item;
+        detailsNameHBox.setVisible(false);
+        detailsNameHBox.setManaged(false);
+        detailLocationLabel.setVisible(true);
+        detailLocationLabel.setManaged(true);
+        detailLocationTextArea.setText(dir.getPath());
+        detailLocationTextArea.setVisible(true);
+        detailLocationTextArea.setManaged(true);
+        detailOccurrenceLabel.setVisible(false);
+        detailOccurrenceLabel.setManaged(false);
+        detailOccurrencesListView.setVisible(false);
+        detailOccurrencesListView.setManaged(false);
+        detailElementsListView.setItems(item.getChildren().stream().map(i -> (Element) i.getValue().getData()).collect(Collectors.toCollection(FXCollections::observableArrayList)));
+        detailScrollPane.setVisible(true);
+        detailScrollPane.setManaged(true);
+    }
+
     private void showDetailsPaneGroup(Group group, TreeItem<FeatureTreeNode> item) {
         currentDetailItem = item;
+        detailsNameHBox.setVisible(true);
+        detailsNameHBox.setManaged(true);
         detailGroupNameTextField.setText(group.getName().get());
         group.getName().bind(detailGroupNameTextField.textProperty());
         detailElementsListView.setItems(FXCollections.observableArrayList(group.getElements()));
 
         detailOccurrencesListView.setItems(FXCollections.observableArrayList(group.getOccurrences()));
         detailGroupNameTextField.setEditable(true);
-        detailLocationLabel.setVisible(false);
-        detailLocationLabel.setManaged(false);
+        detailLocationLabel.setVisible(true);
+        detailLocationLabel.setManaged(true);
         detailLocationTextArea.setVisible(false);
         detailLocationTextArea.setManaged(false);
         detailOccurrenceLabel.setVisible(true);
@@ -276,6 +316,8 @@ public class Controller {
 
     private void showDetailsPaneElement(Element element, TreeItem<FeatureTreeNode> item) {
         currentDetailItem = item;
+        detailsNameHBox.setVisible(true);
+        detailsNameHBox.setManaged(true);
         detailGroupNameTextField.setText(element.getName().get());
         element.getName().bind(detailGroupNameTextField.textProperty());
         detailElementsListView.setItems(FXCollections.observableArrayList(element));
@@ -376,5 +418,70 @@ public class Controller {
         alert.setContentText(content);
         alert.initOwner(getWindow());
         alert.showAndWait();
+    }
+
+    public TreeItem<FeatureTreeNode> getDraggedItem() {
+        return draggedItem;
+    }
+
+    public void setDraggedItem(TreeItem<FeatureTreeNode> draggedItem) {
+        this.draggedItem = draggedItem;
+    }
+
+    public boolean moveElementToGroup(TreeItem<FeatureTreeNode> elementItem, TreeItem<FeatureTreeNode> targetGroupItem) {
+        if (elementItem == null || targetGroupItem == null ||
+                elementItem.getValue().getType() != FeatureTreeNode.DataType.ELEMENT ||
+                targetGroupItem.getValue().getType() == FeatureTreeNode.DataType.CONTAINER) {
+            System.err.println("Invalid types for moveElementToGroup");
+            return false;
+        }
+
+        while(targetGroupItem.getValue().getType() != FeatureTreeNode.DataType.GROUP) {
+            targetGroupItem = targetGroupItem.getParent();
+        }
+
+        Element element = (Element) elementItem.getValue().getData();
+
+        deleteItem(elementItem);
+
+        targetGroupItem.getChildren().add(elementItem);
+        targetGroupItem.setExpanded(true);
+
+        if (featureTreeView.getSelectionModel().getSelectedItem() == elementItem) {
+            showDetailsPane(element, elementItem);
+        } else if (currentDetailItem == elementItem) {
+            showDetailsPane(element, elementItem);
+        }
+
+        System.out.println("Moved element '" + element.getName().get() + "' in TreeView.");
+        return true;
+    }
+
+    private Group findGroupContainingElement(Element element) {
+        if (originalGroups == null) return null;
+        for (Group group : originalGroups) {
+            if (group.getElements().contains(element)) {
+                return group;
+            }
+        }
+        return null;
+    }
+
+    private void deleteItem(TreeItem<FeatureTreeNode> item) {
+        if (item != null) {
+            TreeItem<FeatureTreeNode> parent = item.getParent();
+            if (parent != null) {
+                parent.getChildren().remove(item);
+                System.out.println("Removed item: " + item.getValue().getDisplayName());
+                removeEmptyContainers(parent);
+            }
+        }
+    }
+
+    private void removeEmptyContainers(TreeItem<FeatureTreeNode> item) {
+        if (item != null && item.getChildren().isEmpty() && item.getValue().getType() == FeatureTreeNode.DataType.CONTAINER) {
+            item.getParent().getChildren().remove(item);
+            removeEmptyContainers(item.getParent());
+        }
     }
 }

@@ -22,7 +22,7 @@
         <ScrollPane fx:id="detailScrollPane" fitToWidth="true" managed="false" prefWidth="350" visible="false">
             <VBox fx:id="detailsPane" spacing="10" style="-fx-padding: 10;">
                 <Label style="-fx-font-weight: bold; -fx-font-size: 14px;" text="Details" />
-            <HBox prefHeight="30.0" prefWidth="200.0">
+            <HBox fx:id="detailsNameHBox" prefHeight="30.0" prefWidth="200.0">
                <children>
                       <Label fx:id="detailGroupNameLabel" text="Name: " wrapText="true" />
                   <TextField fx:id="detailGroupNameTextField" />

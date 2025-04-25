@@ -1,9 +1,11 @@
 package at.variabilityanalysisgui.view;
 
 import at.variabilityanalysisgui.controller.Controller;
-import at.variabilityanalysisgui.model.Element;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -53,6 +55,8 @@ public class FeatureTreeCell extends TreeCell<FeatureTreeNode> {
                 controller.handleMoreAction(getTreeItem(), moreButton);
             }
         });
+
+        setupDragAndDrop();
     }
 
     @Override
@@ -75,5 +79,59 @@ public class FeatureTreeCell extends TreeCell<FeatureTreeNode> {
             setGraphic(hbox);
             setText(null);
         }
+    }
+
+    private void setupDragAndDrop() {
+        setOnDragDetected(event -> {
+            if (getItem() != null && getItem().getType() == FeatureTreeNode.DataType.ELEMENT) {
+                Dragboard db = startDragAndDrop(TransferMode.MOVE);
+                ClipboardContent content = new ClipboardContent();
+                content.putString(getItem().getDisplayName());
+                db.setContent(content);
+                controller.setDraggedItem(getTreeItem());
+                event.consume();
+            }
+        });
+
+        setOnDragOver(event -> {
+            TreeItem<FeatureTreeNode> targetItem = getTreeItem();
+            TreeItem<FeatureTreeNode> sourceItem = controller.getDraggedItem();
+
+
+            boolean canDrop = false;
+            if (targetItem != null && targetItem.getValue() != null && sourceItem != null && sourceItem.getValue() != null) {
+                FeatureTreeNode targetNode = targetItem.getValue();
+                FeatureTreeNode sourceNode = sourceItem.getValue();
+
+                if (sourceNode.getType() == FeatureTreeNode.DataType.ELEMENT &&
+                        (targetNode.getType() == FeatureTreeNode.DataType.GROUP || targetNode.getType() == FeatureTreeNode.DataType.ELEMENT)) {
+                    canDrop = true;
+                }
+
+                if (targetItem == sourceItem || targetItem == sourceItem.getParent() // Prevent dropping onto self or parent
+                        ||  sourceNode.getType() == FeatureTreeNode.DataType.ELEMENT && // Prevent dropping element into the same group it's already in (directly)
+                            targetNode.getType() == FeatureTreeNode.DataType.GROUP &&
+                            sourceItem.getParent() == targetItem) {
+                    canDrop = false;
+                }
+            }
+
+            if (canDrop) {
+                event.acceptTransferModes(TransferMode.MOVE);
+            }
+            event.consume();
+        });
+
+        setOnDragDropped(event -> {
+            if (controller.getDraggedItem() != null) {
+                TreeItem<FeatureTreeNode> sourceItem = controller.getDraggedItem();
+                TreeItem<FeatureTreeNode> targetItem = getTreeItem();
+                if (sourceItem.getValue().getType() == FeatureTreeNode.DataType.ELEMENT && (targetItem.getValue().getType() == FeatureTreeNode.DataType.GROUP || targetItem.getValue().getType() == FeatureTreeNode.DataType.ELEMENT)) {
+                    controller.moveElementToGroup(sourceItem, targetItem);
+                }
+                event.setDropCompleted(true);
+                event.consume();
+            }
+        });
     }
 }
