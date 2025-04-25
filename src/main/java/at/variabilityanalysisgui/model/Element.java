@@ -14,16 +14,16 @@ public class Element extends Difference {
     }
 
     private ElementType type;
-    private List<String> location;
+    private String location;
     private String description;
 
     public Element(String name, ElementType type,  String location, String description) {
         this.name = new SimpleStringProperty(name);
         this.type = type;
         if (type == ElementType.JAVA) {
-            this.location = Arrays.stream(location.replaceAll("[()]", "").split("/")).collect(Collectors.toList());
+            this.location = location.replaceAll("[()]", "");
         } else {
-            this.location = Arrays.stream(location.split(";")).collect(Collectors.toList());
+            this.location = location;
         }
         this.description = description;
     }
@@ -32,23 +32,8 @@ public class Element extends Difference {
         return type;
     }
 
-    public List<String> getLocation() {
+    public String getLocation() {
         return location;
-    }
-
-    public String getLocationDisplayString() {
-        StringBuilder sb = new StringBuilder();
-        this.location.forEach(s -> {
-            sb.append(s);
-            if (!s.equals(location.get(location.size() - 1))) {
-                if (type.equals(ElementType.JAVA)) {
-                    sb.append("/");
-                } else {
-                    sb.append(";");
-                }
-            }
-        });
-        return sb.toString();
     }
 
     public String getDescription() {

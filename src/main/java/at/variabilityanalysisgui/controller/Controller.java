@@ -121,7 +121,7 @@ public class Controller {
                     setGraphic(null);
                 } else {
                     VBox vbox = new VBox(2);
-                    Label label = new Label(item.getLocationDisplayString());
+                    Label label = new Label(item.getLocation());
                     label.setStyle("-fx-font-weight: bold;");
                     vbox.getChildren().add(label);
                     if (item.getDescription() != null && !item.getDescription().isEmpty()) {
@@ -158,7 +158,7 @@ public class Controller {
                     while (true) {
                         Optional<TreeItem<FeatureTreeNode>> c = children.stream()
                                 .filter(child -> child.getValue().getType() == FeatureTreeNode.DataType.CONTAINER)
-                                .filter(child -> ((Element) elementItem.getValue().getData()).getLocationDisplayString().startsWith(((DifferenceDirectory) child.getValue().getData()).getPath()))
+                                .filter(child -> ((Element) elementItem.getValue().getData()).getLocation().startsWith(((DifferenceDirectory) child.getValue().getData()).getPath()))
                                 .findFirst();
                         if (!c.isPresent()) break;
                         else {
@@ -193,7 +193,7 @@ public class Controller {
         hierarchyMap.put(IEC61499, ";");
         List<Element> elements = ((Group) groupNodeData.getData()).getElements();
         for (Element element : elements) {
-            String[] pathParts = element.getLocationDisplayString().split(hierarchyMap.get(element.getType()));
+            String[] pathParts = element.getLocation().split(hierarchyMap.get(element.getType()));
             ObservableList<TreeItem<FeatureTreeNode>> children = groupItem.getChildren();
             for (int i = 0; i < pathParts.length; i++) {
                 // Check if the path part already exists in the children
@@ -323,7 +323,7 @@ public class Controller {
         element.getName().bind(detailGroupNameTextField.textProperty());
         detailElementsListView.setItems(FXCollections.observableArrayList(element));
 
-        detailLocationTextArea.setText(element.getLocationDisplayString());
+        detailLocationTextArea.setText(element.getLocation());
         detailGroupNameTextField.setEditable(true);
         detailLocationLabel.setVisible(true);
         detailLocationLabel.setManaged(true);
@@ -445,7 +445,7 @@ public class Controller {
                         for (Element element : elementsInGroup) {
 
                             if (element.getType() == Element.ElementType.JAVA) {
-                                writer.write("(" + element.getLocationDisplayString() + ")");
+                                writer.write("(" + element.getLocation() + ")");
                                 writer.newLine();
 
                                 writer.write(element.getDescription());
