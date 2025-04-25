@@ -16,8 +16,9 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.application.Platform;
 
-import java.io.ByteArrayInputStream;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
@@ -397,6 +398,73 @@ public class Controller {
     @FXML
     private void handleSaveAction() {
         System.out.println("Save Action Triggered - Not Implemented");
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Differences");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
+        fileChooser.setInitialFileName("saved_differences.txt");
+        fileChooser.setInitialDirectory(new File("./"));
+        File file = fileChooser.showSaveDialog(getWindow());
+
+        if (file == null) {
+            System.out.println("Saving cancelled by user.");
+            return;
+        }
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (TreeItem<FeatureTreeNode> groupItem : rootNode.getChildren()) {
+                if (groupItem.getValue().getType() == FeatureTreeNode.DataType.GROUP) {
+                    Group group = (Group) groupItem.getValue().getData();
+
+                    // Group Header
+                    String groupName = group.getName().get();
+                    writer.write(groupName + ":");
+                    writer.newLine();
+
+                    // Occurrences
+                    if (group.getOccurrences() != null && !group.getOccurrences().isEmpty()) {
+                        if (group.getElements().size() > 1 && group.getElements().get(0).getType() == JAVA) {
+                            writer.write("Occurrence:");
+                        } else {
+                            writer.write("Variants:");
+                        }
+                        writer.newLine();
+                        for (String occurrence : group.getOccurrences()) {
+                            writer.write(occurrence);
+                            writer.newLine();
+                        }
+                    }
+
+                    // Elements
+                    List<Element> elementsInGroup = new ArrayList<>();
+                    collectElements(groupItem, elementsInGroup);
+
+                    if (!elementsInGroup.isEmpty()) {
+                        writer.write("Elements:");
+                        writer.newLine();
+                        for (Element element : elementsInGroup) {
+
+                            if (element.getType() == Element.ElementType.JAVA) {
+                                writer.write("(" + element.getLocationDisplayString() + ")");
+                                writer.newLine();
+
+                                writer.write(element.getDescription());
+                                writer.newLine();
+
+                            } else if (element.getType() == Element.ElementType.IEC61499) {
+                                writer.write(element.getDescription());
+                                writer.newLine();
+                            }
+                        }
+                    }
+                    writer.newLine();
+                }
+            }
+
+        } catch (IOException e) {
+            showErrorDialog("Error Saving File", "Could not save the file:\n" + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
 
@@ -482,6 +550,22 @@ public class Controller {
         if (item != null && item.getChildren().isEmpty() && item.getValue().getType() == FeatureTreeNode.DataType.CONTAINER) {
             item.getParent().getChildren().remove(item);
             removeEmptyContainers(item.getParent());
+        }
+    }
+
+    private void collectElements(TreeItem<FeatureTreeNode> item, List<Element> elements) {
+        if (item == null || item.getValue() == null) {
+            return;
+        }
+
+        if (item.getValue().getType() == FeatureTreeNode.DataType.ELEMENT) {
+            elements.add((Element) item.getValue().getData());
+        }
+
+        if (!item.getChildren().isEmpty()) {
+            for (TreeItem<FeatureTreeNode> child : item.getChildren()) {
+                collectElements(child, elements);
+            }
         }
     }
 }

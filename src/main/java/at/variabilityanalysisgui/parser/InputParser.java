@@ -30,11 +30,19 @@ public class InputParser {
 
                 if (line.startsWith("Group") || line.startsWith("Core")) { // New Group
                     if (currentGroup != null && codeSnippet.length() > 0) {
+                        // Assuming any leftover snippet must be a Java element
+                        Element previousElement = parseJavaElement(codeSnippet.toString().trim());
+                        if (previousElement != null) {
+                            currentGroup.addElement(previousElement);
+                        }
                         codeSnippet = new StringBuilder();
                     }
+
                     String groupName = line.replace(":", "").trim();
                     currentGroup = new Group(groupName);
                     groups.add(currentGroup);
+                    currentState = null; // Reset state for the new group
+
 
                 } else if (line.startsWith("Occurrences:") || line.startsWith("Variants:")) { // Occurrences/Variants
                     if (currentGroup != null) currentState = ParseState.READING_OCCURRENCES;
@@ -65,6 +73,13 @@ public class InputParser {
                                     codeSnippet.append(fullLine).append("\n");
                                 }
                             } else if (line.contains(";")) { // IEC Element
+                                if (codeSnippet.length() > 0) {
+                                    Element previousElement = parseJavaElement(codeSnippet.toString().trim());
+                                    if (previousElement != null) {
+                                        currentGroup.addElement(previousElement);
+                                    }
+                                    codeSnippet = new StringBuilder();
+                                }
                                 currentGroup.addElement(parseIECElement(line, line));
 
                             } else {
@@ -76,6 +91,12 @@ public class InputParser {
                             break;
                     }
                 }
+            }
+        }
+        if (currentGroup != null && codeSnippet.length() > 0) {
+            Element lastElement = parseJavaElement(codeSnippet.toString().trim());
+            if (lastElement != null) {
+                currentGroup.addElement(lastElement);
             }
         }
         return groups;
