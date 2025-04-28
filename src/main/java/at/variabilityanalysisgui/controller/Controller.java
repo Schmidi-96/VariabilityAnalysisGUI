@@ -148,7 +148,7 @@ public class Controller {
         featureTreeView.getSelectionModel().clearSelection();
     }
 
-    private void populateGroup(Group group, Integer index) {
+    private TreeItem<FeatureTreeNode> populateGroup(Group group, Integer index) {
         FeatureTreeNode groupNodeData = new FeatureTreeNode(group);
         TreeItem<FeatureTreeNode> groupItem = new TreeItem<>(groupNodeData);
         groupItem.setExpanded(false);
@@ -181,6 +181,7 @@ public class Controller {
         } else {
             rootNode.getChildren().add(groupItem);
         }
+        return groupItem;
     }
 
     private void collapseTillMultipleElements(TreeItem<FeatureTreeNode> groupItem) {
@@ -533,7 +534,8 @@ public class Controller {
             // Add new group TreeItem
             int index = rootNode.getChildren().indexOf(targetGroupItem);
             rootNode.getChildren().remove(index);
-            populateGroup(targetGroup, index);
+            targetGroupItem = populateGroup(targetGroup, index);
+            targetGroupItem.setExpanded(true);
             // remove old group TreeItem
             deleteItem(elementItem);
 
