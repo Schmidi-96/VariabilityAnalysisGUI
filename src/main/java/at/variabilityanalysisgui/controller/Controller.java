@@ -82,6 +82,8 @@ public class Controller {
 
     private TreeItem<FeatureTreeNode> draggedItem = null;
 
+    private int hierarchyLevel = 0;
+
 
 
     private UndoManager undoManager = new UndoManager();
@@ -161,21 +163,34 @@ public class Controller {
                 FeatureTreeNode elementNodeData = new FeatureTreeNode(element);
                 TreeItem<FeatureTreeNode> elementItem = new TreeItem<>(elementNodeData);
                 ObservableList<TreeItem<FeatureTreeNode>> children = groupItem.getChildren();
+                TreeItem<FeatureTreeNode> parent = null;
 
                 while (true) {
                     Optional<TreeItem<FeatureTreeNode>> c = children.stream()
                             .filter(child -> child.getValue().getType() == FeatureTreeNode.DataType.CONTAINER)
                             .filter(child -> ((Element) elementItem.getValue().getData()).getLocation().startsWith(((DifferenceDirectory) child.getValue().getData()).getPath()))
                             .findFirst();
-                    if (!c.isPresent()) break;
-                    else {
+                    if (c.isPresent()){
                         children = c.get().getChildren();
+                        parent = c.get();
+                    } else {
+                        break;
+                    }
+                }
+                if (parent != null) {
+                    int i = hierarchyLevel;
+                    while (i > 0 && parent.getParent() != null && parent.getParent().getValue().getType() == FeatureTreeNode.DataType.CONTAINER) {
+                        children = parent.getParent().getChildren();
+                        TreeItem<FeatureTreeNode> oldParent = parent;
+                        parent = parent.getParent();
+                        children.remove(oldParent);
+                        i--;
                     }
                 }
                 children.add(elementItem);
             }
         }
-        collapseTillMultipleElements(groupItem);
+        collapseTillMultipleElements(groupItem, hierarchyLevel);
         if (index != null) {
             rootNode.getChildren().add(index, groupItem);
         } else {
@@ -184,15 +199,22 @@ public class Controller {
         return groupItem;
     }
 
-    private void collapseTillMultipleElements(TreeItem<FeatureTreeNode> groupItem) {
+    private int collapseTillMultipleElements(TreeItem<FeatureTreeNode> groupItem, int depthOffset) {
         if (groupItem.getChildren().size() == 1 && groupItem.getChildren().get(0).getValue().getType() == FeatureTreeNode.DataType.CONTAINER) {
             TreeItem<FeatureTreeNode> oldChild = groupItem.getChildren().get(0);
-            collapseTillMultipleElements(oldChild);
-            ObservableList<TreeItem<FeatureTreeNode>> newChildren = oldChild.getChildren();
-            groupItem.getChildren().clear();
-            for (TreeItem<FeatureTreeNode> childItem : newChildren) {
-                groupItem.getChildren().add(childItem);
+            int offset = collapseTillMultipleElements(oldChild, depthOffset);
+            if (offset > 0) {
+                ObservableList<TreeItem<FeatureTreeNode>> newChildren = oldChild.getChildren();
+                groupItem.getChildren().clear();
+                for (TreeItem<FeatureTreeNode> childItem : newChildren) {
+                    groupItem.getChildren().add(childItem);
+                }
+            } else {
+                offset += 1;
             }
+            return offset;
+        } else {
+            return depthOffset + 1;
         }
     }
 
@@ -373,6 +395,8 @@ public class Controller {
     @FXML
     private void handleHierarchyUpAction() {
         System.out.println("Hierarchie Up Action Triggered - Not Implemented");
+        hierarchyLevel--;
+        populateTreeView(originalGroups);
     }
 
     @FXML
@@ -383,6 +407,8 @@ public class Controller {
     @FXML
     private void handleHierarchyDownAction() {
         System.out.println("Hierarchie Down Action Triggered - Not Implemented");
+        hierarchyLevel++;
+        populateTreeView(originalGroups);
     }
 
     @FXML
