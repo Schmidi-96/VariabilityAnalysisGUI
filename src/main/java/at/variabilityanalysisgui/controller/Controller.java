@@ -3,7 +3,6 @@ package at.variabilityanalysisgui.controller;
 import at.variabilityanalysisgui.model.Difference;
 import at.variabilityanalysisgui.model.Group;
 import at.variabilityanalysisgui.view.DifferenceDirectory;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -31,8 +30,6 @@ import at.variabilityanalysisgui.parser.InputParser;
 
 
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import static at.variabilityanalysisgui.model.Element.ElementType.IEC61499;
 import static at.variabilityanalysisgui.model.Element.ElementType.JAVA;
@@ -84,6 +81,10 @@ public class Controller {
     private TreeItem<FeatureTreeNode> currentDetailItem = null;
 
     private TreeItem<FeatureTreeNode> draggedItem = null;
+
+
+
+    private UndoManager undoManager = new UndoManager();
 
 
     @FXML
@@ -142,42 +143,50 @@ public class Controller {
         if (groups == null) return;
 
         for (Group group : groups) {
-            FeatureTreeNode groupNodeData = new FeatureTreeNode(group);
-            TreeItem<FeatureTreeNode> groupItem = new TreeItem<>(groupNodeData);
-            groupItem.setExpanded(false);
-
-            createHierarchy(groupItem, groupNodeData);
-
-            // Add elements as children
-            if (group.getElements() != null) {
-                for (Element element : group.getElements()) {
-                    FeatureTreeNode elementNodeData = new FeatureTreeNode(element);
-                    TreeItem<FeatureTreeNode> elementItem = new TreeItem<>(elementNodeData);
-                    ObservableList<TreeItem<FeatureTreeNode>> children = groupItem.getChildren();
-
-                    while (true) {
-                        Optional<TreeItem<FeatureTreeNode>> c = children.stream()
-                                .filter(child -> child.getValue().getType() == FeatureTreeNode.DataType.CONTAINER)
-                                .filter(child -> ((Element) elementItem.getValue().getData()).getLocation().startsWith(((DifferenceDirectory) child.getValue().getData()).getPath()))
-                                .findFirst();
-                        if (!c.isPresent()) break;
-                        else {
-                            children = c.get().getChildren();
-                        }
-                    }
-                    children.add(elementItem);
-                }
-            }
-            colapsebeginning(groupItem);
-            rootNode.getChildren().add(groupItem);
+            populateGroup(group, null);
         }
         featureTreeView.getSelectionModel().clearSelection();
     }
 
-    private void colapsebeginning(TreeItem<FeatureTreeNode> groupItem) {
+    private void populateGroup(Group group, Integer index) {
+        FeatureTreeNode groupNodeData = new FeatureTreeNode(group);
+        TreeItem<FeatureTreeNode> groupItem = new TreeItem<>(groupNodeData);
+        groupItem.setExpanded(false);
+
+        organizeHierarchy(groupItem, groupNodeData);
+
+        // Add elements as children
+        if (group.getElements() != null) {
+            for (Element element : group.getElements()) {
+                FeatureTreeNode elementNodeData = new FeatureTreeNode(element);
+                TreeItem<FeatureTreeNode> elementItem = new TreeItem<>(elementNodeData);
+                ObservableList<TreeItem<FeatureTreeNode>> children = groupItem.getChildren();
+
+                while (true) {
+                    Optional<TreeItem<FeatureTreeNode>> c = children.stream()
+                            .filter(child -> child.getValue().getType() == FeatureTreeNode.DataType.CONTAINER)
+                            .filter(child -> ((Element) elementItem.getValue().getData()).getLocation().startsWith(((DifferenceDirectory) child.getValue().getData()).getPath()))
+                            .findFirst();
+                    if (!c.isPresent()) break;
+                    else {
+                        children = c.get().getChildren();
+                    }
+                }
+                children.add(elementItem);
+            }
+        }
+        collapseTillMultipleElements(groupItem);
+        if (index != null) {
+            rootNode.getChildren().add(index, groupItem);
+        } else {
+            rootNode.getChildren().add(groupItem);
+        }
+    }
+
+    private void collapseTillMultipleElements(TreeItem<FeatureTreeNode> groupItem) {
         if (groupItem.getChildren().size() == 1 && groupItem.getChildren().get(0).getValue().getType() == FeatureTreeNode.DataType.CONTAINER) {
             TreeItem<FeatureTreeNode> oldChild = groupItem.getChildren().get(0);
-            colapsebeginning(oldChild);
+            collapseTillMultipleElements(oldChild);
             ObservableList<TreeItem<FeatureTreeNode>> newChildren = oldChild.getChildren();
             groupItem.getChildren().clear();
             for (TreeItem<FeatureTreeNode> childItem : newChildren) {
@@ -187,7 +196,7 @@ public class Controller {
     }
 
 
-    private void createHierarchy(TreeItem<FeatureTreeNode> groupItem, FeatureTreeNode groupNodeData) {
+    private void organizeHierarchy(TreeItem<FeatureTreeNode> groupItem, FeatureTreeNode groupNodeData) {
         HashMap<Element.ElementType, String> hierarchyMap = new HashMap<>();
         hierarchyMap.put(JAVA, "/");
         hierarchyMap.put(IEC61499, ";");
@@ -496,12 +505,12 @@ public class Controller {
         this.draggedItem = draggedItem;
     }
 
-    public boolean moveElementToGroup(TreeItem<FeatureTreeNode> elementItem, TreeItem<FeatureTreeNode> targetGroupItem) {
+    public void moveElementToGroup(TreeItem<FeatureTreeNode> elementItem, TreeItem<FeatureTreeNode> targetGroupItem) {
         if (elementItem == null || targetGroupItem == null ||
                 elementItem.getValue().getType() != FeatureTreeNode.DataType.ELEMENT ||
                 targetGroupItem.getValue().getType() == FeatureTreeNode.DataType.CONTAINER) {
             System.err.println("Invalid types for moveElementToGroup");
-            return false;
+            return;
         }
 
         while(targetGroupItem.getValue().getType() != FeatureTreeNode.DataType.GROUP) {
@@ -509,20 +518,27 @@ public class Controller {
         }
 
         Element element = (Element) elementItem.getValue().getData();
+        Group targetGroup = (Group) targetGroupItem.getValue().getData();
 
-        deleteItem(elementItem);
+        Group sourceGroup = findGroupContainingElement(element);
 
-        targetGroupItem.getChildren().add(elementItem);
-        targetGroupItem.setExpanded(true);
+        // Remove from old group's element list
+        boolean removed = sourceGroup.getElements().remove(element);
+        if (!removed) {
+            System.err.println("Failed to remove element from source group's list in model.");
+        } else {
+            // Add to new group's element list
+            targetGroup.getElements().add(element);
 
-        if (featureTreeView.getSelectionModel().getSelectedItem() == elementItem) {
-            showDetailsPane(element, elementItem);
-        } else if (currentDetailItem == elementItem) {
-            showDetailsPane(element, elementItem);
+            // Add new group TreeItem
+            int index = rootNode.getChildren().indexOf(targetGroupItem);
+            rootNode.getChildren().remove(index);
+            populateGroup(targetGroup, index);
+            // remove old group TreeItem
+            deleteItem(elementItem);
+
+            System.out.println("Moved element '" + element.getName().get());
         }
-
-        System.out.println("Moved element '" + element.getName().get() + "' in TreeView.");
-        return true;
     }
 
     private Group findGroupContainingElement(Element element) {
