@@ -263,6 +263,13 @@ public class Controller {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
+            if (item.getValue().getType() == FeatureTreeNode.DataType.ELEMENT) {
+                Element element = (Element) item.getValue().getData();
+                Group group = findGroupContainingElement(element);
+                if (group != null) {
+                    group.getElements().remove(element);
+                }
+            }
             deleteItem(item);
         }
     }
@@ -422,53 +429,46 @@ public class Controller {
         }
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            for (TreeItem<FeatureTreeNode> groupItem : rootNode.getChildren()) {
-                if (groupItem.getValue().getType() == FeatureTreeNode.DataType.GROUP) {
-                    Group group = (Group) groupItem.getValue().getData();
+            for (Group group : originalGroups) {
+                // Group Header
+                String groupName = group.getName().get();
+                writer.write(groupName + ":");
+                writer.newLine();
 
-                    // Group Header
-                    String groupName = group.getName().get();
-                    writer.write(groupName + ":");
+                // Occurrences
+                if (group.getOccurrences() != null && !group.getOccurrences().isEmpty()) {
+                    if (group.getElements().size() > 1 && group.getElements().get(0).getType() == JAVA) {
+                        writer.write("Occurrence:");
+                    } else {
+                        writer.write("Variants:");
+                    }
                     writer.newLine();
-
-                    // Occurrences
-                    if (group.getOccurrences() != null && !group.getOccurrences().isEmpty()) {
-                        if (group.getElements().size() > 1 && group.getElements().get(0).getType() == JAVA) {
-                            writer.write("Occurrence:");
-                        } else {
-                            writer.write("Variants:");
-                        }
+                    for (String occurrence : group.getOccurrences()) {
+                        writer.write(occurrence);
                         writer.newLine();
-                        for (String occurrence : group.getOccurrences()) {
-                            writer.write(occurrence);
+                    }
+                }
+
+                // Elements
+                if (!group.getElements().isEmpty()) {
+                    writer.write("Elements:");
+                    writer.newLine();
+                    for (Element element : group.getElements()) {
+
+                        if (element.getType() == Element.ElementType.JAVA) {
+                            writer.write("(" + element.getLocation() + ")");
+                            writer.newLine();
+
+                            writer.write(element.getDescription());
+                            writer.newLine();
+
+                        } else if (element.getType() == Element.ElementType.IEC61499) {
+                            writer.write(element.getDescription());
                             writer.newLine();
                         }
                     }
-
-                    // Elements
-                    List<Element> elementsInGroup = new ArrayList<>();
-                    collectElements(groupItem, elementsInGroup);
-
-                    if (!elementsInGroup.isEmpty()) {
-                        writer.write("Elements:");
-                        writer.newLine();
-                        for (Element element : elementsInGroup) {
-
-                            if (element.getType() == Element.ElementType.JAVA) {
-                                writer.write("(" + element.getLocation() + ")");
-                                writer.newLine();
-
-                                writer.write(element.getDescription());
-                                writer.newLine();
-
-                            } else if (element.getType() == Element.ElementType.IEC61499) {
-                                writer.write(element.getDescription());
-                                writer.newLine();
-                            }
-                        }
-                    }
-                    writer.newLine();
                 }
+                writer.newLine();
             }
 
         } catch (IOException e) {
@@ -568,22 +568,6 @@ public class Controller {
         if (item != null && item.getChildren().isEmpty() && item.getValue().getType() == FeatureTreeNode.DataType.CONTAINER) {
             item.getParent().getChildren().remove(item);
             removeEmptyContainers(item.getParent());
-        }
-    }
-
-    private void collectElements(TreeItem<FeatureTreeNode> item, List<Element> elements) {
-        if (item == null || item.getValue() == null) {
-            return;
-        }
-
-        if (item.getValue().getType() == FeatureTreeNode.DataType.ELEMENT) {
-            elements.add((Element) item.getValue().getData());
-        }
-
-        if (!item.getChildren().isEmpty()) {
-            for (TreeItem<FeatureTreeNode> child : item.getChildren()) {
-                collectElements(child, elements);
-            }
         }
     }
 }

@@ -126,7 +126,8 @@ public class FeatureTreeCell extends TreeCell<FeatureTreeNode> {
             if (controller.getDraggedItem() != null) {
                 TreeItem<FeatureTreeNode> sourceItem = controller.getDraggedItem();
                 TreeItem<FeatureTreeNode> targetItem = getTreeItem();
-                if (sourceItem.getValue().getType() == FeatureTreeNode.DataType.ELEMENT && (targetItem.getValue().getType() == FeatureTreeNode.DataType.GROUP || targetItem.getValue().getType() == FeatureTreeNode.DataType.ELEMENT)) {
+                if (sourceItem.getValue().getType() == FeatureTreeNode.DataType.ELEMENT
+                        && (targetItem.getValue().getType() == FeatureTreeNode.DataType.GROUP || targetItem.getValue().getType() == FeatureTreeNode.DataType.ELEMENT)) {
                     controller.moveElementToGroup(sourceItem, targetItem);
                 }
                 event.setDropCompleted(true);
