@@ -13,10 +13,10 @@ import javafx.scene.layout.Region;
 public class FeatureTreeCell extends TreeCell<FeatureTreeNode> {
 
     private final HBox hbox;
-    private final Label label = new Label();
-    private final Button editButton = new Button("Edit");
+    private final Label nameLabel = new Label();
+    private final Label pathLabel = new Label();
+    private final Label typeLabel = new Label();
     private final Button deleteButton = new Button("X");
-    private final Button moreButton = new Button("...");
 
     private final Controller controller;
 
@@ -24,12 +24,8 @@ public class FeatureTreeCell extends TreeCell<FeatureTreeNode> {
         this.controller = controller;
 
         // Buttons
-        editButton.setStyle("-fx-padding: 2 5 2 5;");
         deleteButton.setStyle("-fx-padding: 2 5 2 5;");
-        moreButton.setStyle("-fx-padding: 2 5 2 5;");
         deleteButton.setTooltip(new Tooltip("Remove this group/element"));
-        editButton.setTooltip(new Tooltip("Edit group"));
-        moreButton.setTooltip(new Tooltip("More options / Show details"));
 
         // Layout
         Region spacer = new Region();
@@ -37,22 +33,9 @@ public class FeatureTreeCell extends TreeCell<FeatureTreeNode> {
         hbox = new HBox(5);
         hbox.setAlignment(Pos.CENTER_LEFT);
 
-        // Action handlers
-        editButton.setOnAction(event -> {
-            if (getItem() != null && getItem().getType() == FeatureTreeNode.DataType.GROUP) {
-                controller.handleEditAction(getTreeItem());
-            }
-        });
-
         deleteButton.setOnAction(event -> {
             if (getItem() != null) {
                 controller.handleDeleteAction(getTreeItem());
-            }
-        });
-
-        moreButton.setOnAction(event -> {
-            if (getItem() != null) {
-                controller.handleMoreAction(getTreeItem(), moreButton);
             }
         });
 
@@ -66,14 +49,26 @@ public class FeatureTreeCell extends TreeCell<FeatureTreeNode> {
             setText(null);
             setGraphic(null);
         } else {
-            label.setText(item.getDisplayName());
-            hbox.getChildren().setAll(label);
+            nameLabel.setText(item.getDisplayName());
+            pathLabel.setText(item.getPath());
+            pathLabel.setStyle("-fx-text-fill: #A0A0A0; -fx-font-size: 10px;");
+            if (item.getType() == FeatureTreeNode.DataType.ELEMENT) {
+                typeLabel.setText("E");
+                typeLabel.setStyle("-fx-text-fill: #00AA00;");
+            } else if (item.getType() == FeatureTreeNode.DataType.CONTAINER) {
+                typeLabel.setText("D");
+                typeLabel.setStyle("-fx-text-fill: #0000FF;");
+            } else if (item.getType() == FeatureTreeNode.DataType.GROUP) {
+                typeLabel.setText("G");
+                typeLabel.setStyle("-fx-text-fill: #A0A0A0;");
+            }
+            hbox.getChildren().setAll(nameLabel, typeLabel, pathLabel );
 
             if (item.getData() != null) {
                 Region spacer = new Region();
                 HBox.setHgrow(spacer, Priority.ALWAYS);
                 hbox.getChildren().addAll(spacer);
-                hbox.getChildren().addAll(deleteButton, moreButton);
+                hbox.getChildren().addAll(deleteButton);
             }
 
             setGraphic(hbox);

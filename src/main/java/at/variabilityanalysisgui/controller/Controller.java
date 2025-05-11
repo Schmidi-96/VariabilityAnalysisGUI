@@ -150,6 +150,14 @@ public class Controller {
         featureTreeView.getSelectionModel().clearSelection();
     }
 
+    private void refreshGroup(TreeItem<FeatureTreeNode> groupItem) {
+        Group group = (Group) groupItem.getValue().getData();
+        int index = rootNode.getChildren().indexOf(groupItem);
+        rootNode.getChildren().remove(index);
+        groupItem = populateGroup(group, index);
+        groupItem.setExpanded(true); //TODO: recreate expand/collapse state
+    }
+
     private TreeItem<FeatureTreeNode> populateGroup(Group group, Integer index) {
         FeatureTreeNode groupNodeData = new FeatureTreeNode(group);
         TreeItem<FeatureTreeNode> groupItem = new TreeItem<>(groupNodeData);
@@ -161,33 +169,41 @@ public class Controller {
         if (group.getElements() != null) {
             for (Element element : group.getElements()) {
                 FeatureTreeNode elementNodeData = new FeatureTreeNode(element);
-                TreeItem<FeatureTreeNode> elementItem = new TreeItem<>(elementNodeData);
-                ObservableList<TreeItem<FeatureTreeNode>> children = groupItem.getChildren();
-                TreeItem<FeatureTreeNode> parent = null;
 
-                while (true) {
-                    Optional<TreeItem<FeatureTreeNode>> c = children.stream()
-                            .filter(child -> child.getValue().getType() == FeatureTreeNode.DataType.CONTAINER)
-                            .filter(child -> ((Element) elementItem.getValue().getData()).getLocation().startsWith(((DifferenceDirectory) child.getValue().getData()).getPath()))
-                            .findFirst();
-                    if (c.isPresent()){
-                        children = c.get().getChildren();
-                        parent = c.get();
-                    } else {
-                        break;
+                // Check if the element is already in the tree
+                TreeItem<FeatureTreeNode> existingItem = findTreeItemByPath(groupItem, element.getLocation() + element.getSeperaterSymbol() + element.getName().get());
+                if (existingItem != null && existingItem.getValue().isDirectory()) {
+                    elementNodeData.setDirectory(true);
+                    existingItem.setValue(elementNodeData);
+                } else {
+                    TreeItem<FeatureTreeNode> elementItem = new TreeItem<>(elementNodeData);
+                    ObservableList<TreeItem<FeatureTreeNode>> children = groupItem.getChildren();
+                    TreeItem<FeatureTreeNode> parent = null;
+
+                    while (true) {
+                        Optional<TreeItem<FeatureTreeNode>> c = children.stream()
+                                .filter(child -> child.getValue().isDirectory())
+                                .filter(child -> ((Element) elementItem.getValue().getData()).getLocation().startsWith(child.getValue().getPath()))
+                                .findFirst();
+                        if (c.isPresent()) {
+                            children = c.get().getChildren();
+                            parent = c.get();
+                        } else {
+                            break;
+                        }
                     }
-                }
-                if (parent != null) {
-                    int i = hierarchyLevel;
-                    while (i > 0 && parent.getParent() != null && parent.getParent().getValue().getType() == FeatureTreeNode.DataType.CONTAINER) {
-                        children = parent.getParent().getChildren();
-                        TreeItem<FeatureTreeNode> oldParent = parent;
-                        parent = parent.getParent();
-                        children.remove(oldParent);
-                        i--;
+                    if (parent != null) {
+                        int i = hierarchyLevel;
+                        while (i > 0 && parent.getParent() != null && parent.getParent().getValue().isDirectory()) {
+                            children = parent.getParent().getChildren();
+                            TreeItem<FeatureTreeNode> oldParent = parent;
+                            parent = parent.getParent();
+                            children.remove(oldParent);
+                            i--;
+                        }
                     }
+                    children.add(elementItem);
                 }
-                children.add(elementItem);
             }
         }
         collapseTillMultipleElements(groupItem, hierarchyLevel);
@@ -199,8 +215,21 @@ public class Controller {
         return groupItem;
     }
 
+    private TreeItem<FeatureTreeNode> findTreeItemByPath(TreeItem<FeatureTreeNode> rootNode, String location) {
+        for (TreeItem<FeatureTreeNode> child : rootNode.getChildren()) {
+            if (child.getValue().getPath() != null && child.getValue().getPath().equals(location)) {
+                return child;
+            }
+            TreeItem<FeatureTreeNode> found = findTreeItemByPath(child, location);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
+    }
+
     private int collapseTillMultipleElements(TreeItem<FeatureTreeNode> groupItem, int depthOffset) {
-        if (groupItem.getChildren().size() == 1 && groupItem.getChildren().get(0).getValue().getType() == FeatureTreeNode.DataType.CONTAINER) {
+        if (groupItem.getChildren().size() == 1 && groupItem.getChildren().get(0).getValue().isDirectory()) {
             TreeItem<FeatureTreeNode> oldChild = groupItem.getChildren().get(0);
             int offset = collapseTillMultipleElements(oldChild, depthOffset);
             if (offset > 0) {
@@ -236,8 +265,8 @@ public class Controller {
                 if (existingChild.isPresent()) {
                     children = existingChild.get().getChildren();
                 } else {
-                    DifferenceDirectory con = new DifferenceDirectory(String.join(hierarchyMap.get(element.getType()), Arrays.asList(pathParts).subList(0, i + 1)), hierarchyMap.get(element.getType()));
-                    TreeItem<FeatureTreeNode> conTreeItem = new TreeItem<>(new FeatureTreeNode(con));
+                    DifferenceDirectory dir = new DifferenceDirectory(String.join(hierarchyMap.get(element.getType()), Arrays.asList(pathParts).subList(0, i + 1)), hierarchyMap.get(element.getType()));
+                    TreeItem<FeatureTreeNode> conTreeItem = new TreeItem<>(new FeatureTreeNode(dir));
                     children.add(conTreeItem);
                     children = conTreeItem.getChildren();
                 }
@@ -278,6 +307,7 @@ public class Controller {
     }
 
     public void handleDeleteAction(TreeItem<FeatureTreeNode> item) {
+        //TODO: implement delete of directories
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirm Deletion");
         alert.setHeaderText("Remove '" + item.getValue().getDisplayName() + "'?");
@@ -535,10 +565,32 @@ public class Controller {
     public void moveElementToGroup(TreeItem<FeatureTreeNode> elementItem, TreeItem<FeatureTreeNode> targetGroupItem) {
         if (elementItem == null || targetGroupItem == null ||
                 elementItem.getValue().getType() != FeatureTreeNode.DataType.ELEMENT ||
-                targetGroupItem.getValue().getType() == FeatureTreeNode.DataType.CONTAINER) {
+                targetGroupItem.getValue().isDirectory() && targetGroupItem.getValue().getType() != FeatureTreeNode.DataType.ELEMENT) {
             System.err.println("Invalid types for moveElementToGroup");
             return;
         }
+
+        // Open dialogue if the subelements should also be moved or if the subelement should kept in the current group, if the element is a directory
+        if (elementItem.getValue().isDirectory()) {
+            Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+            alert.setTitle("Move Directory");
+            alert.setHeaderText("Move Directory and all its subelements?");
+            alert.setContentText("Do you want to move the directory and all its subelements to the new group?");
+            ButtonType yesButton = new ButtonType("Yes");
+            ButtonType onlyDirectoryButton = new ButtonType("Keep Subelements");
+            ButtonType noButton = new ButtonType("No");
+            alert.getButtonTypes().setAll(yesButton, onlyDirectoryButton, noButton);
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.isPresent() && result.get() == noButton) {
+                return;
+            }
+            if (result.isPresent() && result.get() == yesButton) {
+                for(TreeItem<FeatureTreeNode> child: elementItem.getChildren()) {
+                    moveElementToGroup(child, targetGroupItem);
+                }
+            }
+        }
+
 
         while(targetGroupItem.getValue().getType() != FeatureTreeNode.DataType.GROUP) {
             targetGroupItem = targetGroupItem.getParent();
@@ -557,11 +609,13 @@ public class Controller {
             // Add to new group's element list
             targetGroup.getElements().add(element);
 
+            //refresh old group TreeItem
+            TreeItem<FeatureTreeNode> sourceGroupItem = findTreeItemByPath(rootNode, sourceGroup.getName().get());
+            if (sourceGroupItem != null) {
+                refreshGroup(sourceGroupItem);
+            }
             // Add new group TreeItem
-            int index = rootNode.getChildren().indexOf(targetGroupItem);
-            rootNode.getChildren().remove(index);
-            targetGroupItem = populateGroup(targetGroup, index);
-            targetGroupItem.setExpanded(true);
+            refreshGroup(targetGroupItem);
             // remove old group TreeItem
             deleteItem(elementItem);
 

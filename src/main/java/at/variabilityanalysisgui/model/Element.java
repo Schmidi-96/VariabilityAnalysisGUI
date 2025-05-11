@@ -40,6 +40,14 @@ public class Element extends Difference {
         return description;
     }
 
+    public String getSeperaterSymbol() {
+        if (type == ElementType.JAVA) {
+            return "/";
+        } else {
+            return ";";
+        }
+    }
+
     @Override
     public String toString() {
         return location + ":\n" + description;

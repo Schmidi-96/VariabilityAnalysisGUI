@@ -11,28 +11,35 @@ public class FeatureTreeNode {
     }
 
     private final Difference data;
-    private final DataType type;
+    private boolean directory;
 
     public FeatureTreeNode(Group group) {
         this.data = group;
-        this.type = DataType.GROUP;
+        directory = false;
     }
 
     public FeatureTreeNode(Element element) {
         this.data = element;
-        this.type = DataType.ELEMENT;
+        this.directory = false; //TODO: change when directory is implemented and container checks removed
     }
 
     public FeatureTreeNode(Difference data) {
         this.data = data;
-        this.type = DataType.CONTAINER;
+        directory = true;
     }
 
     public FeatureTreeNode(DifferenceDirectory dir) {
         this.data = dir;
-        this.type = DataType.CONTAINER;
+        directory = true;
     }
 
+    public boolean isDirectory() {
+        return directory;
+    }
+
+    public void setDirectory(boolean directory) {
+        this.directory = directory;
+    }
 
     public Difference getData() {
         return data;
@@ -43,7 +50,24 @@ public class FeatureTreeNode {
     }
 
     public DataType getType() {
-        return type;
+        if (data instanceof Group) {
+            return DataType.GROUP;
+        } else if (data instanceof Element) {
+            return DataType.ELEMENT;
+        } else {
+            return DataType.CONTAINER;
+        }
+    }
+
+    public String getPath() {
+        if (data instanceof DifferenceDirectory) {
+            return ((DifferenceDirectory) data).getPath();
+        } else if (data instanceof Element) {
+            return ((Element) data).getLocation() + ((Element) data).getSeperaterSymbol() + data.getName().get();
+        } else if (data instanceof Group) {
+            return data.getName().get();
+        }
+        return null;
     }
 
     @Override
