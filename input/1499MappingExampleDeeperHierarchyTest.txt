@@ -1,0 +1,194 @@
+Core
+Variants: 
+Sensor_Analog_Actuator_1CoilDigital
+Sensor_Digital_Actuator_2CoilDigital
+Sensor_Digital_Actuator_Analog_Soft_Stop
+Sensor_Analog_Actuator_Analog_Soft_Stop
+Sensor_Analog_Actuator_Analog
+Sensor_Analog_Actuator_2CoilDigital
+Sensor_Digital_Actuator_Analog
+Sensor_Digital_Actuator_1CoilDigital
+Elements:
+ AxisControl;HW_Control_Core_HCC
+AxisControl;Sensor;IW
+AxisControl;Sensor;IW2
+AxisControl;Sensor;IW2;Test1;Test2
+AxisControl;Sensor
+AxisControl;Error_Control
+AxisControl;Actuator
+AxisControl;HW_Control_Core_HCC.Moved -> AxisControl;Error_Control.CNF_Moved
+
+Group3
+Variants: 
+Sensor_Analog_Actuator_1CoilDigital
+Sensor_Digital_Actuator_2CoilDigital
+Sensor_Analog_Actuator_Analog_Soft_Stop
+Sensor_Analog_Actuator_Analog
+Sensor_Analog_Actuator_2CoilDigital
+Sensor_Digital_Actuator_Analog
+Sensor_Digital_Actuator_1CoilDigital
+Elements:
+ AxisControl;HW_Control_Core_HCC.Data_Actuator -> AxisControl;Error_Control.Data_Actuator
+
+Group4
+Variants: 
+Sensor_Digital_Actuator_2CoilDigital
+Sensor_Digital_Actuator_Analog_Soft_Stop
+Sensor_Analog_Actuator_Analog_Soft_Stop
+Sensor_Analog_Actuator_Analog
+Sensor_Digital_Actuator_Analog
+Sensor_Digital_Actuator_1CoilDigital
+Elements:
+ AxisControl;Actuator;HCCToAnalog
+
+Group5
+Variants: 
+Sensor_Digital_Actuator_2CoilDigital
+Sensor_Digital_Actuator_Analog_Soft_Stop
+Sensor_Analog_Actuator_Analog_Soft_Stop
+Sensor_Analog_Actuator_Analog
+Sensor_Analog_Actuator_2CoilDigital
+Sensor_Digital_Actuator_Analog
+Sensor_Digital_Actuator_1CoilDigital
+Elements:
+ AxisControl;Actuator;Coil2Actuator
+
+Group6
+Variants: 
+Sensor_Digital_Actuator_2CoilDigital
+Sensor_Digital_Actuator_Analog_Soft_Stop
+Sensor_Analog_Actuator_Analog
+Sensor_Analog_Actuator_2CoilDigital
+Sensor_Digital_Actuator_Analog
+Sensor_Digital_Actuator_1CoilDigital
+Elements:
+ AxisControl;Actuator;Coil1Actuator
+
+Group7
+Variants: 
+Sensor_Digital_Actuator_2CoilDigital
+Sensor_Digital_Actuator_Analog_Soft_Stop
+Sensor_Analog_Actuator_Analog_Soft_Stop
+Sensor_Analog_Actuator_Analog
+Sensor_Analog_Actuator_2CoilDigital
+Sensor_Digital_Actuator_Analog
+Elements:
+ AxisControl;Actuator;HCCTo2CoilConverter
+AxisControl;HW_Control_Core_HCC.Data_Actuator -> AxisControl;Actuator;HCCTo2CoilConverter.Data_Actuator
+
+Group8
+Variants: 
+Sensor_Digital_Actuator_2CoilDigital
+Sensor_Digital_Actuator_Analog_Soft_Stop
+Sensor_Analog_Actuator_Analog_Soft_Stop
+Sensor_Analog_Actuator_Analog
+Sensor_Digital_Actuator_Analog
+Sensor_Digital_Actuator_1CoilDigital
+Elements:
+ AxisControl;Actuator;SoftStopPID
+
+Group9
+Variants: 
+Sensor_Analog_Actuator_1CoilDigital
+Sensor_Digital_Actuator_Analog_Soft_Stop
+Sensor_Analog_Actuator_Analog_Soft_Stop
+Sensor_Analog_Actuator_Analog
+Sensor_Analog_Actuator_2CoilDigital
+Sensor_Digital_Actuator_Analog
+Elements:
+ AxisControl;Sensor;AnalogToHCCConverter
+
+Group10
+Variants: 
+Sensor_Digital_Actuator_2CoilDigital
+Sensor_Digital_Actuator_Analog_Soft_Stop
+Sensor_Analog_Actuator_Analog_Soft_Stop
+Sensor_Analog_Actuator_Analog
+Sensor_Digital_Actuator_Analog
+Elements:
+ AxisControl;Sensor;AnalogToHCCConverter
+
+Group11
+Variants: 
+Sensor_Analog_Actuator_1CoilDigital
+Sensor_Analog_Actuator_Analog_Soft_Stop
+Sensor_Analog_Actuator_Analog
+Sensor_Analog_Actuator_2CoilDigital
+Elements:
+ AxisControl;Sensor;AnalogToHCCConverter.Data_Work -> AxisControl;HW_Control_Core_HCC.Sensor_Work
+AxisControl;Sensor;AnalogToHCCConverter.Data_Work -> AxisControl;Error_Control.Sensor_Work
+
+Group12
+Variants: 
+Sensor_Digital_Actuator_2CoilDigital
+Sensor_Digital_Actuator_Analog_Soft_Stop
+Sensor_Analog_Actuator_Analog_Soft_Stop
+Sensor_Analog_Actuator_Analog
+Sensor_Digital_Actuator_Analog
+Elements:
+ AxisControl;Actuator;Merge_Soft_Stop
+AxisControl;Actuator;HCCToAnalogConverter.Data_Analog -> AxisControl;Actuator;Merge_Soft_Stop.Output_QW
+
+Group13
+Variants: 
+Sensor_Digital_Actuator_2CoilDigital
+Sensor_Analog_Actuator_Analog
+Sensor_Digital_Actuator_Analog
+Elements:
+ AxisControl;Actuator;HCCToAnalog.CNF -> AxisControl;Actuator;Analog_Actuator.REQ
+
+Group14
+Variants: 
+Sensor_Digital_Actuator_2CoilDigital
+Sensor_Analog_Actuator_2CoilDigital
+Sensor_Digital_Actuator_Analog
+Elements:
+ AxisControl;Actuator;HCCTo2CoilConverter.CNF_Coil2 -> AxisControl;Actuator;Coil2Actuator.REQ
+
+Group15
+Variants: 
+Sensor_Digital_Actuator_2CoilDigital
+Sensor_Analog_Actuator_Analog
+Sensor_Analog_Actuator_2CoilDigital
+Elements:
+ AxisControl;Actuator;HCCTo2CoilConverter.Data_Coil1 -> AxisControl;Actuator;Coil1Actuator.OUT
+
+Group16
+Variants: 
+Sensor_Analog_Actuator_1CoilDigital
+Sensor_Analog_Actuator_Analog
+Sensor_Analog_Actuator_2CoilDigital
+Elements:
+ AxisControl;Sensor;AnalogToHCCConverter.CNF -> AxisControl;Error_Control.Sensor_Update
+
+Group17
+Variants: 
+Sensor_Digital_Actuator_Analog_Soft_Stop
+Sensor_Analog_Actuator_Analog_Soft_Stop
+Sensor_Analog_Actuator_Analog
+Sensor_Digital_Actuator_Analog
+Elements:
+ AxisControl;Sensor;SoftStopAnalogExtension
+AxisControl;Actuator;Merge_Soft_Stop.OUT -> AxisControl;Actuator;Analog_Actuator.OUT
+AxisControl;Actuator;SoftStopPID.CNF -> AxisControl;Actuator;Merge_Soft_Stop.CNF_Reduced_QW
+
+Group18
+Variants: 
+Sensor_Analog_Actuator_1CoilDigital
+Sensor_Digital_Actuator_1CoilDigital
+Elements:
+ AxisControl;HW_Control_Core_HCC.Data_Actuator -> AxisControl;Actuator;Coil1Actuator.OUT
+
+Group19
+Variants: 
+Sensor_Digital_Actuator_Analog_Soft_Stop
+Elements:
+ AxisControl;Actuator_Analog_Soft_Stop_Sensor_Digital
+
+Group20
+Variants: 
+Sensor_Analog_Actuator_Analog_Soft_Stop
+Elements:
+ AxisControl;Sensor;SoftStopAnalogExtension.CNF -> AxisControl;HW_Control_Core_HCC.Sensor_Update
+AxisControl;Sensor;SoftStopAnalogExtension.Data_D4 -> AxisControl;Actuator;SoftStopPID.Data_D4
+

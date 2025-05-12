@@ -89,6 +89,7 @@ public class Controller {
     private TreeItem<FeatureTreeNode> draggedItem = null;
 
     private int hierarchyLevel = 0;
+    private int maxHierarchyLevel = 0;
 
 
 
@@ -205,6 +206,7 @@ public class Controller {
                             TreeItem<FeatureTreeNode> oldParent = parent;
                             parent = parent.getParent();
                             children.remove(oldParent);
+                            parent.getChildren().addAll(oldParent.getChildren());
                             i--;
                         }
                     }
@@ -498,8 +500,8 @@ public class Controller {
     // Actions for Menu Buttons
     @FXML
     private void handleHierarchyUpAction() {
-        System.out.println("Hierarchie Up Action Triggered - Not Implemented");
         hierarchyLevel--;
+        System.out.println("Hierarchie Up Action Triggered: " + hierarchyLevel);
         populateTreeView(originalGroups);
     }
 
@@ -510,7 +512,7 @@ public class Controller {
 
     @FXML
     private void handleHierarchyDownAction() {
-        System.out.println("Hierarchie Down Action Triggered - Not Implemented");
+        System.out.println("Hierarchie Down Action Triggered: " + hierarchyLevel);
         hierarchyLevel++;
         populateTreeView(originalGroups);
     }
@@ -531,6 +533,9 @@ public class Controller {
         if (selectedFile != null) {
             try {
                 originalGroups = parser.parse(selectedFile.getAbsolutePath());
+                //maxHierarchyLevel = maxHierarchyDepth(originalGroups);
+                //hierarchyLevel = maxHierarchyLevel-1;
+                System.out.println("hierarchylevel=" + hierarchyLevel);
                 populateTreeView(originalGroups); // Populate with parsed data
                 saveDecisionsMenuItem.setDisable(false);
                 searchTextField.clear();
@@ -723,5 +728,34 @@ public class Controller {
             item.getParent().getChildren().remove(item);
             removeEmptyContainers(item.getParent());
         }
+    }
+
+    private int maxHierarchyDepth(List<Group> groups) {
+        int maxDepth = 0;
+        for (Group group : originalGroups) {
+            int depth = maxHierarchyDepth(group);
+            if (depth > maxDepth) {
+                maxDepth = depth;
+            }
+        }
+        return maxDepth;
+    }
+
+    private int maxHierarchyDepth(Group group) {
+        int maxDepth = 0;
+        for (Element element : group.getElements()) {
+            if (element.getType() == JAVA) {
+                String[] pathParts = element.getLocation().split("/");
+                if (pathParts.length > maxDepth) {
+                    maxDepth = pathParts.length;
+                }
+            } else if (element.getType() == IEC61499) {
+                String[] pathParts = element.getLocation().split(";");
+                if (pathParts.length > maxDepth) {
+                    maxDepth = pathParts.length;
+                }
+            }
+        }
+        return maxDepth;
     }
 }
