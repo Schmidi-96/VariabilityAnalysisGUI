@@ -313,22 +313,50 @@ public class Controller {
     }
 
     public void handleDeleteAction(TreeItem<FeatureTreeNode> item) {
-        //TODO: implement delete of directories
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirm Deletion");
         alert.setHeaderText("Remove '" + item.getValue().getDisplayName() + "'?");
-        alert.setContentText("Are you sure you want to remove this item from the view?");
-
+        ButtonType yesButton = new ButtonType("Yes");
+        ButtonType onlyDirectoryButton = new ButtonType("Keep Subelements");
+        ButtonType noButton = new ButtonType("No");
+        if (item.getValue().isDirectory() && item.getValue().getType() == FeatureTreeNode.DataType.ELEMENT) {
+            alert.setContentText("Are you sure you want to remove this item and all its subelements?");
+            alert.getButtonTypes().setAll(yesButton, onlyDirectoryButton, noButton);
+        } else {
+            alert.setContentText("Are you sure you want to remove this item from the view?");
+            alert.getButtonTypes().setAll(yesButton, noButton);
+        }
         Optional<ButtonType> result = alert.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
+        if (result.isPresent() && result.get() == yesButton) {
+            for(TreeItem<FeatureTreeNode> child: item.getChildren()) {
+                Element element = (Element) child.getValue().getData();
+                Group group = findGroupContainingElement(element);
+                if (group != null) {
+                    group.getElements().remove(element);
+                }
+                deleteItem(item);
+            }
             if (item.getValue().getType() == FeatureTreeNode.DataType.ELEMENT) {
                 Element element = (Element) item.getValue().getData();
                 Group group = findGroupContainingElement(element);
                 if (group != null) {
                     group.getElements().remove(element);
+                    TreeItem<FeatureTreeNode> groupItem = findTreeItemByPath(rootNode, group.getName().get());
+                    refreshGroup(groupItem);
                 }
             }
-            deleteItem(item);
+
+        }
+        if (result.isPresent() && result.get() == onlyDirectoryButton) {
+            if (item.getValue().getType() == FeatureTreeNode.DataType.ELEMENT) {
+                Element element = (Element) item.getValue().getData();
+                Group group = findGroupContainingElement(element);
+                if (group != null) {
+                    group.getElements().remove(element);
+                    TreeItem<FeatureTreeNode> groupItem = findTreeItemByPath(rootNode, group.getName().get());
+                    refreshGroup(groupItem);
+                }
+            }
         }
     }
 
