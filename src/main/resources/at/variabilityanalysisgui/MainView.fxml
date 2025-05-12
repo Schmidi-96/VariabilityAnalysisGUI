@@ -29,11 +29,13 @@
                </children>
             </HBox>
             <Label fx:id="detailLocationLabel" style="-fx-font-weight: bold;" text="Location" />
-            <TextArea fx:id="detailLocationTextArea" prefHeight="200.0" prefWidth="200.0" />
+            <TextArea fx:id="detailLocationTextArea" prefHeight="50.0" prefWidth="200.0" />
                 <Label fx:id="detailOccurrenceLabel" style="-fx-font-weight: bold;" text="Occurrences:" />
-                <ListView fx:id="detailOccurrencesListView" prefHeight="80" />
-                <Label style="-fx-font-weight: bold;" text="Elements:" />
-                <ListView fx:id="detailElementsListView" prefHeight="200" />
+                <ListView fx:id="detailOccurrencesListView" prefHeight="100.0" />
+            <Label fx:id="detailElementLabel" text="Element" />
+            <TextArea fx:id="detailElementData" prefHeight="100.0" prefWidth="200.0" />
+                <Label fx:id="detailSubElementLabel" style="-fx-font-weight: bold;" text="Sublements:" />
+                <ListView fx:id="detailSubElementListView" prefHeight="200" />
                 <Button onAction="#handleCloseDetails" text="Close Details" />
             </VBox>
         </ScrollPane>

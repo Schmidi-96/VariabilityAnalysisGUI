@@ -13,24 +13,9 @@ public class FeatureTreeNode {
     private final Difference data;
     private boolean directory;
 
-    public FeatureTreeNode(Group group) {
-        this.data = group;
-        directory = false;
-    }
-
-    public FeatureTreeNode(Element element) {
-        this.data = element;
-        this.directory = false; //TODO: change when directory is implemented and container checks removed
-    }
-
-    public FeatureTreeNode(Difference data) {
+    public FeatureTreeNode(Difference data, boolean directory) {
         this.data = data;
-        directory = true;
-    }
-
-    public FeatureTreeNode(DifferenceDirectory dir) {
-        this.data = dir;
-        directory = true;
+        this.directory = directory;
     }
 
     public boolean isDirectory() {

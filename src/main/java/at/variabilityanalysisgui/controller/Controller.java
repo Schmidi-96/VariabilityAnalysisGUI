@@ -71,7 +71,13 @@ public class Controller {
     @FXML
     private ListView<String> detailOccurrencesListView;
     @FXML
-    private ListView<Element> detailElementsListView;
+    private Label detailElementLabel;
+    @FXML
+    private TextArea detailElementData;
+    @FXML
+    private Label detailSubElementLabel;
+    @FXML
+    private ListView<Element> detailSubElementListView;
 
 
     private InputParser parser = new InputParser();
@@ -95,7 +101,7 @@ public class Controller {
         featureTreeView.setCellFactory(tv -> new FeatureTreeCell(this)); // Pass controller reference
 
         // Create an invisible root item
-        rootNode = new TreeItem<>(new FeatureTreeNode(new Difference())); // Dummy root node
+        rootNode = new TreeItem<>(new FeatureTreeNode(new Difference(), false)); // Dummy root node
         featureTreeView.setRoot(rootNode);
         featureTreeView.setShowRoot(false);
 
@@ -115,7 +121,7 @@ public class Controller {
         searchTextField.textProperty().addListener((obs, oldVal, newVal) -> filterTreeView(newVal));
 
         // Configure the optional detail elements list view display
-        detailElementsListView.setCellFactory(lv -> new ListCell<Element>() {
+        detailSubElementListView.setCellFactory(lv -> new ListCell<Element>() {
             @Override
             protected void updateItem(Element item, boolean empty) {
                 super.updateItem(item, empty);
@@ -159,7 +165,7 @@ public class Controller {
     }
 
     private TreeItem<FeatureTreeNode> populateGroup(Group group, Integer index) {
-        FeatureTreeNode groupNodeData = new FeatureTreeNode(group);
+        FeatureTreeNode groupNodeData = new FeatureTreeNode(group, false);
         TreeItem<FeatureTreeNode> groupItem = new TreeItem<>(groupNodeData);
         groupItem.setExpanded(false);
 
@@ -168,7 +174,7 @@ public class Controller {
         // Add elements as children
         if (group.getElements() != null) {
             for (Element element : group.getElements()) {
-                FeatureTreeNode elementNodeData = new FeatureTreeNode(element);
+                FeatureTreeNode elementNodeData = new FeatureTreeNode(element, false);
 
                 // Check if the element is already in the tree
                 TreeItem<FeatureTreeNode> existingItem = findTreeItemByPath(groupItem, element.getLocation() + element.getSeperaterSymbol() + element.getName().get());
@@ -266,7 +272,7 @@ public class Controller {
                     children = existingChild.get().getChildren();
                 } else {
                     DifferenceDirectory dir = new DifferenceDirectory(String.join(hierarchyMap.get(element.getType()), Arrays.asList(pathParts).subList(0, i + 1)), hierarchyMap.get(element.getType()));
-                    TreeItem<FeatureTreeNode> conTreeItem = new TreeItem<>(new FeatureTreeNode(dir));
+                    TreeItem<FeatureTreeNode> conTreeItem = new TreeItem<>(new FeatureTreeNode(dir, true));
                     children.add(conTreeItem);
                     children = conTreeItem.getChildren();
                 }
@@ -357,7 +363,19 @@ public class Controller {
         detailOccurrenceLabel.setManaged(false);
         detailOccurrencesListView.setVisible(false);
         detailOccurrencesListView.setManaged(false);
-        detailElementsListView.setItems(item.getChildren().stream().map(i -> (Element) i.getValue().getData()).collect(Collectors.toCollection(FXCollections::observableArrayList)));
+        detailSubElementListView.setItems(item.getChildren().stream().map(i -> (Element) i.getValue().getData()).collect(Collectors.toCollection(FXCollections::observableArrayList)));
+
+        detailElementLabel.setVisible(false);
+        detailElementLabel.setManaged(false);
+        detailElementData.setVisible(false);
+        detailElementData.setManaged(false);
+        detailElementData.setEditable(false);
+
+        detailSubElementLabel.setVisible(true);
+        detailSubElementLabel.setManaged(true);
+        detailSubElementListView.setVisible(true);
+        detailSubElementListView.setManaged(true);
+
         detailScrollPane.setVisible(true);
         detailScrollPane.setManaged(true);
     }
@@ -368,41 +386,69 @@ public class Controller {
         detailsNameHBox.setManaged(true);
         detailGroupNameTextField.setText(group.getName().get());
         group.getName().bind(detailGroupNameTextField.textProperty());
-        detailElementsListView.setItems(FXCollections.observableArrayList(group.getElements()));
-
+        detailSubElementListView.setItems(FXCollections.observableArrayList(group.getElements()));
         detailOccurrencesListView.setItems(FXCollections.observableArrayList(group.getOccurrences()));
         detailGroupNameTextField.setEditable(true);
+
         detailLocationLabel.setVisible(true);
         detailLocationLabel.setManaged(true);
         detailLocationTextArea.setVisible(false);
         detailLocationTextArea.setManaged(false);
+
         detailOccurrenceLabel.setVisible(true);
         detailOccurrenceLabel.setManaged(true);
         detailOccurrencesListView.setVisible(true);
         detailOccurrencesListView.setManaged(true);
+
+        detailElementLabel.setVisible(false);
+        detailElementLabel.setManaged(false);
+        detailElementData.setVisible(false);
+        detailElementData.setManaged(false);
+        detailElementData.setEditable(false);
+
+        detailSubElementLabel.setVisible(true);
+        detailSubElementLabel.setManaged(true);
+        detailSubElementListView.setVisible(true);
+        detailSubElementListView.setManaged(true);
+
         detailScrollPane.setVisible(true);
         detailScrollPane.setManaged(true);
     }
 
     private void showDetailsPaneElement(Element element, TreeItem<FeatureTreeNode> item) {
         currentDetailItem = item;
-        detailsNameHBox.setVisible(true);
-        detailsNameHBox.setManaged(true);
         detailGroupNameTextField.setText(element.getName().get());
         element.getName().bind(detailGroupNameTextField.textProperty());
-        detailElementsListView.setItems(FXCollections.observableArrayList(element));
-
+        detailElementData.setText(element.getDescription());
+        detailSubElementListView.setItems(FXCollections.observableArrayList(element));
         detailLocationTextArea.setText(element.getLocation());
         detailGroupNameTextField.setEditable(true);
+
+        detailsNameHBox.setVisible(true);
+        detailsNameHBox.setManaged(true);
+
         detailLocationLabel.setVisible(true);
         detailLocationLabel.setManaged(true);
-        detailLocationTextArea.setEditable(false);
         detailLocationTextArea.setVisible(true);
         detailLocationTextArea.setManaged(true);
+        detailLocationTextArea.setEditable(false);
+
         detailOccurrenceLabel.setVisible(false);
         detailOccurrenceLabel.setManaged(false);
         detailOccurrencesListView.setVisible(false);
         detailOccurrencesListView.setManaged(false);
+
+        detailElementLabel.setVisible(true);
+        detailElementLabel.setManaged(true);
+        detailElementData.setVisible(true);
+        detailElementData.setManaged(true);
+        detailElementData.setEditable(false);
+
+        detailSubElementLabel.setVisible(item.getValue().isDirectory());
+        detailSubElementLabel.setManaged(item.getValue().isDirectory());
+        detailSubElementListView.setVisible(item.getValue().isDirectory());
+        detailSubElementListView.setManaged(item.getValue().isDirectory());
+
         detailScrollPane.setVisible(true);
         detailScrollPane.setManaged(true);
     }
@@ -417,7 +463,7 @@ public class Controller {
         detailScrollPane.setManaged(false);
         currentDetailItem = null;
         detailOccurrencesListView.setItems(FXCollections.emptyObservableList());
-        detailElementsListView.setItems(FXCollections.emptyObservableList());
+        detailSubElementListView.setItems(FXCollections.emptyObservableList());
     }
 
 
