@@ -572,6 +572,9 @@ public class Controller {
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             for (Group group : originalGroups) {
+                if (group.getElements().isEmpty()) {
+                    continue;
+                }
                 // Group Header
                 String groupName = group.getName().get();
                 writer.write(groupName + ":");
@@ -592,26 +595,24 @@ public class Controller {
                 }
 
                 // Elements
-                if (!group.getElements().isEmpty()) {
-                    writer.write("Elements:");
-                    writer.newLine();
-                    for (Element element : group.getElements()) {
+                writer.write("Elements:");
+                writer.newLine();
+                for (Element element : group.getElements()) {
+                    if (this.parser.getType() == JAVA) {
+                        writer.write("(" + element.getLocation() + ")");
+                        writer.newLine();
 
-                        if (this.parser.getType() == JAVA) {
-                            writer.write("(" + element.getLocation() + ")");
-                            writer.newLine();
+                        writer.write(element.getDescription());
+                        writer.newLine();
 
-                            writer.write(element.getDescription());
-                            writer.newLine();
-
-                        } else if (this.parser.getType() == IEC61499) {
-                            writer.write(element.getDescription());
-                            writer.newLine();
-                        }
+                    } else if (this.parser.getType() == IEC61499) {
+                        writer.write(element.getDescription());
+                        writer.newLine();
                     }
                 }
                 writer.newLine();
             }
+
 
         } catch (IOException e) {
             showErrorDialog("Error Saving File", "Could not save the file:\n" + e.getMessage());
