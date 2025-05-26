@@ -48,12 +48,6 @@ public class Controller {
     @FXML
     private Button filterButton;
     @FXML
-    private Button upButton;
-    @FXML
-    private Button confirmButton;
-    @FXML
-    private Button downButton;
-    @FXML
     private MenuItem saveDecisionsMenuItem;
 
     // Detail Pane
@@ -510,23 +504,6 @@ public class Controller {
 
 
     // Actions for Menu Buttons
-    @FXML
-    private void handleHierarchyUpAction() {
-        System.out.println("Hierarchie Up Action Triggered");
-        populateTreeView(originalGroups);
-    }
-
-    @FXML
-    private void handleConfirmAction() {
-        System.out.println("Confirm Action Triggered - Not Implemented");
-    }
-
-    @FXML
-    private void handleHierarchyDownAction() {
-        System.out.println("Hierarchie Down Action Triggered");
-        populateTreeView(originalGroups);
-    }
-
     @FXML
     private void handleFilterAction() {
         System.out.println("Filter Action Triggered - Not Implemented");

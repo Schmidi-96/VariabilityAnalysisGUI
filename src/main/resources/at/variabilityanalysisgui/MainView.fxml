@@ -5,19 +5,6 @@
 <?import javafx.scene.layout.*?>
 
 <BorderPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.variabilityanalysisgui.controller.Controller">
-    <bottom>
-        <HBox alignment="CENTER" prefHeight="50.0" spacing="20" style="-fx-padding: 15;">
-            <Button fx:id="upButton" onAction="#handleHierarchyUpAction" prefWidth="80" text="&lt;-">
-                <tooltip><Tooltip text="Previous Item" /></tooltip>
-            </Button>
-            <Button fx:id="confirmButton" onAction="#handleConfirmAction" prefWidth="80" text="OK">
-                <tooltip><Tooltip text="Confirm Decision" /></tooltip>
-            </Button>
-            <Button fx:id="downButton" onAction="#handleHierarchyDownAction" prefWidth="80" text="-&gt;">
-                <tooltip><Tooltip text="Next Item" /></tooltip>
-            </Button>
-        </HBox>
-    </bottom>
     <right>
         <ScrollPane fx:id="detailScrollPane" fitToWidth="true" managed="false" prefWidth="350" visible="false">
             <VBox fx:id="detailsPane" spacing="10" style="-fx-padding: 10;">
@@ -52,7 +39,10 @@
                   <TextField fx:id="searchTextField" promptText="Search..." HBox.hgrow="ALWAYS" />
               </HBox>
               <TreeView fx:id="featureTreeView" style="-fx-padding: 5;" VBox.vgrow="ALWAYS" />
-            <HBox fx:id="hierarchyButtonHBox" maxHeight="20.0" prefHeight="20.0" />
+            <HBox fx:id="hierarchyButtonHBox" alignment="CENTER_LEFT" maxHeight="20.0" prefHeight="20.0" style="-fx-padding: 10;">
+               <padding>
+                  <Insets left="10.0" />
+               </padding></HBox>
          </children>
       </VBox>
    </center>
