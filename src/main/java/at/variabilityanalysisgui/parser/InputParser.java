@@ -11,8 +11,18 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static at.variabilityanalysisgui.parser.InputParser.ExtractionType.*;
+
 public class InputParser {
 
+    public ExtractionType getType() {
+        return type;
+    }
+
+    public enum ExtractionType {
+        JAVA, IEC61499, UNKNOWN
+    }
+    private ExtractionType type = ExtractionType.UNKNOWN;
 
     private static final Pattern JAVA_ELEMENT_PATTERN = Pattern.compile("^\\((.*?):(\\d+)\\)$");
 
@@ -21,6 +31,7 @@ public class InputParser {
         Group currentGroup = null;
         ParseState currentState = null;
         StringBuilder codeSnippet = new StringBuilder();
+        this.type = UNKNOWN;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String fullLine;
@@ -58,21 +69,27 @@ public class InputParser {
                             currentGroup.addOccurrence(line);
                             break;
 
-                        case READING_ELEMENTS: case READING_CODE_SNIPPET:
-                            Matcher javaMatcher = JAVA_ELEMENT_PATTERN.matcher(line);
+                        case READING_ELEMENTS:
+                            if(this.type == ExtractionType.UNKNOWN) {
+                                if(JAVA_ELEMENT_PATTERN.matcher(line).matches()) this.type = JAVA;
+                                else if (line.contains(";")) this.type = IEC61499;
+                                else this.type = ExtractionType.UNKNOWN;
+                            }
 
-                            if (javaMatcher.matches()) { // Java location
-                                if (codeSnippet.length() > 0) {
-                                    currentGroup.addElement(parseJavaElement(codeSnippet.toString().trim()));
-                                    codeSnippet = new StringBuilder();
+                            if(this.type == JAVA) {
+                                if (JAVA_ELEMENT_PATTERN.matcher(line).matches()) { // Java location
+                                    if (codeSnippet.length() > 0) {
+                                        currentGroup.addElement(parseJavaElement(codeSnippet.toString().trim()));
+                                        codeSnippet = new StringBuilder();
+                                    }
+                                    codeSnippet.append(line).append("\n");;
+                                } else { // Java code
+                                    if (codeSnippet.length() > 0) {
+                                        codeSnippet.append(fullLine).append("\n");
+                                    }
                                 }
-                                codeSnippet.append(line).append("\n");
-                                currentState = ParseState.READING_CODE_SNIPPET;
-                            } else if (currentState == ParseState.READING_CODE_SNIPPET) { // Java code
-                                if (codeSnippet.length() > 0) {
-                                    codeSnippet.append(fullLine).append("\n");
-                                }
-                            } else if (line.contains(";")) { // IEC Element
+
+                            } else if (this.type == IEC61499) { // IEC Element
                                 if (codeSnippet.length() > 0) {
                                     Element previousElement = parseJavaElement(codeSnippet.toString().trim());
                                     if (previousElement != null) {
@@ -85,6 +102,7 @@ public class InputParser {
                             } else {
                                 System.err.println("Unexpected line format in Elements: " + line);
                             }
+
                             break;
 
                         default:
@@ -118,7 +136,7 @@ public class InputParser {
             } else if (colon > 0){
                 name = "Line " + line.substring(colon+1, line.length()-1);
             }
-            return new Element(name, Element.ElementType.JAVA, line, description.toString());
+            return new Element(name, JAVA, line, description.toString());
         }
         return null;
     }
@@ -141,13 +159,12 @@ public class InputParser {
                 name = line.substring(index+1);
             }
         }
-        return new Element(name, Element.ElementType.IEC61499, location, description);
+        return new Element(name, IEC61499, location, description);
     }
 
 
     private enum ParseState {
         READING_OCCURRENCES,
-        READING_ELEMENTS,
-        READING_CODE_SNIPPET
+        READING_ELEMENTS
     }
 }

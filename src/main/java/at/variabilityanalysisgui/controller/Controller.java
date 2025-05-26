@@ -31,11 +31,16 @@ import at.variabilityanalysisgui.parser.InputParser;
 
 import java.util.stream.Collectors;
 
-import static at.variabilityanalysisgui.model.Element.ElementType.IEC61499;
-import static at.variabilityanalysisgui.model.Element.ElementType.JAVA;
+import static at.variabilityanalysisgui.parser.InputParser.ExtractionType.IEC61499;
+import static at.variabilityanalysisgui.parser.InputParser.ExtractionType.JAVA;
 
 public class Controller {
 
+    enum ViewMode {
+        TREE, FLAT, JAVAFILE
+    }
+
+    public HBox hierarchyButtonHBox;
     @FXML
     private TreeView<FeatureTreeNode> featureTreeView;
     @FXML
@@ -88,12 +93,11 @@ public class Controller {
 
     private TreeItem<FeatureTreeNode> draggedItem = null;
 
-    private int hierarchyLevel = 0;
-    private int maxHierarchyLevel = 0;
-
-
+    Map<InputParser.ExtractionType, String> seperatorMap = Map.of(JAVA, "/", IEC61499, ";");
 
     private UndoManager undoManager = new UndoManager();
+
+    ViewMode viewMode = ViewMode.FLAT;
 
 
     @FXML
@@ -165,6 +169,8 @@ public class Controller {
         groupItem.setExpanded(true); //TODO: recreate expand/collapse state
     }
 
+
+
     private TreeItem<FeatureTreeNode> populateGroup(Group group, Integer index) {
         FeatureTreeNode groupNodeData = new FeatureTreeNode(group, false);
         TreeItem<FeatureTreeNode> groupItem = new TreeItem<>(groupNodeData);
@@ -190,7 +196,14 @@ public class Controller {
                     while (true) {
                         Optional<TreeItem<FeatureTreeNode>> c = children.stream()
                                 .filter(child -> child.getValue().isDirectory())
-                                .filter(child -> ((Element) elementItem.getValue().getData()).getLocation().startsWith(child.getValue().getPath()))
+                                .filter(child -> {
+                                    String path = child.getValue().getPath();
+                                    if( viewMode == ViewMode.JAVAFILE) {
+                                        path = path.split(":")[0];
+                                        return ((Element) elementItem.getValue().getData()).getLocation().split(":")[0].startsWith(path);
+                                    }
+                                    return ((Element) elementItem.getValue().getData()).getLocation().startsWith(path);
+                                })
                                 .findFirst();
                         if (c.isPresent()) {
                             children = c.get().getChildren();
@@ -199,22 +212,11 @@ public class Controller {
                             break;
                         }
                     }
-                    if (parent != null) {
-                        int i = hierarchyLevel;
-                        while (i > 0 && parent.getParent() != null && parent.getParent().getValue().isDirectory()) {
-                            children = parent.getParent().getChildren();
-                            TreeItem<FeatureTreeNode> oldParent = parent;
-                            parent = parent.getParent();
-                            children.remove(oldParent);
-                            parent.getChildren().addAll(oldParent.getChildren());
-                            i--;
-                        }
-                    }
                     children.add(elementItem);
                 }
             }
         }
-        collapseTillMultipleElements(groupItem, hierarchyLevel);
+        collapseTillMultipleElements(groupItem);
         if (index != null) {
             rootNode.getChildren().add(index, groupItem);
         } else {
@@ -236,44 +238,54 @@ public class Controller {
         return null;
     }
 
-    private int collapseTillMultipleElements(TreeItem<FeatureTreeNode> groupItem, int depthOffset) {
-        if (groupItem.getChildren().size() == 1 && groupItem.getChildren().get(0).getValue().isDirectory()) {
-            TreeItem<FeatureTreeNode> oldChild = groupItem.getChildren().get(0);
-            int offset = collapseTillMultipleElements(oldChild, depthOffset);
-            if (offset > 0) {
-                ObservableList<TreeItem<FeatureTreeNode>> newChildren = oldChild.getChildren();
-                groupItem.getChildren().clear();
-                for (TreeItem<FeatureTreeNode> childItem : newChildren) {
-                    groupItem.getChildren().add(childItem);
-                }
-            } else {
-                offset += 1;
+    private void collapseTillMultipleElements(TreeItem<FeatureTreeNode> groupItem) {
+        if (viewMode == ViewMode.FLAT) return;
+        boolean viewCriteria = true;
+        if (viewMode == ViewMode.JAVAFILE) {
+            for(TreeItem<FeatureTreeNode> child : groupItem.getChildren()) {
+                if (child.getValue().getDisplayName().contains(".java")) viewCriteria = false;
             }
-            return offset;
-        } else {
-            return depthOffset + 1;
+        }
+
+        if (groupItem.getChildren().size() == 1
+                && groupItem.getChildren().get(0).getValue().isDirectory()
+                && viewCriteria) {
+            TreeItem<FeatureTreeNode> oldChild = groupItem.getChildren().get(0);
+            collapseTillMultipleElements(oldChild);
+
+            ObservableList<TreeItem<FeatureTreeNode>> newChildren = oldChild.getChildren();
+            groupItem.getChildren().clear();
+            for (TreeItem<FeatureTreeNode> childItem : newChildren) {
+                groupItem.getChildren().add(childItem);
+            }
         }
     }
 
 
     private void organizeHierarchy(TreeItem<FeatureTreeNode> groupItem, FeatureTreeNode groupNodeData) {
-        HashMap<Element.ElementType, String> hierarchyMap = new HashMap<>();
-        hierarchyMap.put(JAVA, "/");
-        hierarchyMap.put(IEC61499, ";");
+        if (viewMode == ViewMode.FLAT) return;
+
         List<Element> elements = ((Group) groupNodeData.getData()).getElements();
         for (Element element : elements) {
-            String[] pathParts = element.getLocation().split(hierarchyMap.get(element.getType()));
+            String[] pathParts = element.getLocation().split(seperatorMap.get(this.parser.getType()));
             ObservableList<TreeItem<FeatureTreeNode>> children = groupItem.getChildren();
             for (int i = 0; i < pathParts.length; i++) {
                 // Check if the path part already exists in the children
-                int fi = i;
+                String pathPart;
+                if(viewMode == ViewMode.JAVAFILE) {
+                    pathPart = pathParts[i].split(":")[0]; // For Java file view, we only want the part before the colon
+                } else {
+                    pathPart = pathParts[i];
+                }
                 Optional<TreeItem<FeatureTreeNode>> existingChild = children.stream()
-                        .filter(child -> child.getValue().getDisplayName().equals(pathParts[fi]))
+                        .filter(child -> child.getValue().getDisplayName().equals(pathPart))
                         .findFirst();
                 if (existingChild.isPresent()) {
                     children = existingChild.get().getChildren();
                 } else {
-                    DifferenceDirectory dir = new DifferenceDirectory(String.join(hierarchyMap.get(element.getType()), Arrays.asList(pathParts).subList(0, i + 1)), hierarchyMap.get(element.getType()));
+                    String name = String.join(seperatorMap.get(this.parser.getType()), Arrays.asList(pathParts).subList(0, i + 1));
+                    if(viewMode == ViewMode.JAVAFILE) name = name.split(":")[0];
+                    DifferenceDirectory dir = new DifferenceDirectory(name, seperatorMap.get(this.parser.getType()));
                     TreeItem<FeatureTreeNode> conTreeItem = new TreeItem<>(new FeatureTreeNode(dir, true));
                     children.add(conTreeItem);
                     children = conTreeItem.getChildren();
@@ -500,8 +512,7 @@ public class Controller {
     // Actions for Menu Buttons
     @FXML
     private void handleHierarchyUpAction() {
-        hierarchyLevel--;
-        System.out.println("Hierarchie Up Action Triggered: " + hierarchyLevel);
+        System.out.println("Hierarchie Up Action Triggered");
         populateTreeView(originalGroups);
     }
 
@@ -512,8 +523,7 @@ public class Controller {
 
     @FXML
     private void handleHierarchyDownAction() {
-        System.out.println("Hierarchie Down Action Triggered: " + hierarchyLevel);
-        hierarchyLevel++;
+        System.out.println("Hierarchie Down Action Triggered");
         populateTreeView(originalGroups);
     }
 
@@ -533,9 +543,8 @@ public class Controller {
         if (selectedFile != null) {
             try {
                 originalGroups = parser.parse(selectedFile.getAbsolutePath());
-                //maxHierarchyLevel = maxHierarchyDepth(originalGroups);
-                //hierarchyLevel = maxHierarchyLevel-1;
-                System.out.println("hierarchylevel=" + hierarchyLevel);
+                hierarchyButtonHBox.getChildren().clear();
+                initializeHierarchyButtons(hierarchyButtonHBox);
                 populateTreeView(originalGroups); // Populate with parsed data
                 saveDecisionsMenuItem.setDisable(false);
                 searchTextField.clear();
@@ -549,8 +558,6 @@ public class Controller {
 
     @FXML
     private void handleSaveAction() {
-        System.out.println("Save Action Triggered - Not Implemented");
-
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Save Differences");
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text Files", "*.txt"));
@@ -572,7 +579,7 @@ public class Controller {
 
                 // Occurrences
                 if (group.getOccurrences() != null && !group.getOccurrences().isEmpty()) {
-                    if (group.getElements().size() > 1 && group.getElements().get(0).getType() == JAVA) {
+                    if (group.getElements().size() > 1 && this.parser.getType() == JAVA) {
                         writer.write("Occurrence:");
                     } else {
                         writer.write("Variants:");
@@ -590,14 +597,14 @@ public class Controller {
                     writer.newLine();
                     for (Element element : group.getElements()) {
 
-                        if (element.getType() == Element.ElementType.JAVA) {
+                        if (this.parser.getType() == JAVA) {
                             writer.write("(" + element.getLocation() + ")");
                             writer.newLine();
 
                             writer.write(element.getDescription());
                             writer.newLine();
 
-                        } else if (element.getType() == Element.ElementType.IEC61499) {
+                        } else if (this.parser.getType() == IEC61499) {
                             writer.write(element.getDescription());
                             writer.newLine();
                         }
@@ -730,32 +737,29 @@ public class Controller {
         }
     }
 
-    private int maxHierarchyDepth(List<Group> groups) {
-        int maxDepth = 0;
-        for (Group group : originalGroups) {
-            int depth = maxHierarchyDepth(group);
-            if (depth > maxDepth) {
-                maxDepth = depth;
-            }
+    private void initializeHierarchyButtons(HBox hbox) {
+        hbox.getChildren().clear();
+        Button hierarchyTreeButton = new Button("Tree");
+        hbox.getChildren().add(hierarchyTreeButton);
+        hierarchyTreeButton.setOnAction(event -> {
+            this.viewMode = ViewMode.TREE;
+            populateTreeView(originalGroups);
+        });
+        if (this.parser.getType() == JAVA) {
+            Button hierarchyJavaFileButton = new Button("File");
+            hbox.getChildren().add(hierarchyJavaFileButton);
+            hierarchyJavaFileButton.setOnAction(event -> {
+                this.viewMode = ViewMode.JAVAFILE;
+                populateTreeView(originalGroups);
+            });
+        } else if (this.parser.getType() == IEC61499) {
+            //TODO: IEC61499 specific hierarchy button
         }
-        return maxDepth;
-    }
-
-    private int maxHierarchyDepth(Group group) {
-        int maxDepth = 0;
-        for (Element element : group.getElements()) {
-            if (element.getType() == JAVA) {
-                String[] pathParts = element.getLocation().split("/");
-                if (pathParts.length > maxDepth) {
-                    maxDepth = pathParts.length;
-                }
-            } else if (element.getType() == IEC61499) {
-                String[] pathParts = element.getLocation().split(";");
-                if (pathParts.length > maxDepth) {
-                    maxDepth = pathParts.length;
-                }
-            }
-        }
-        return maxDepth;
+        Button hierarchyFlatButton = new Button("Flat");
+        hbox.getChildren().add(hierarchyFlatButton);
+        hierarchyFlatButton.setOnAction(event -> {
+            this.viewMode = ViewMode.FLAT;
+            populateTreeView(originalGroups);
+        });
     }
 }

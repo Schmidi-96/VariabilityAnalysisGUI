@@ -1,35 +1,26 @@
 package at.variabilityanalysisgui.model;
 
+import at.variabilityanalysisgui.parser.InputParser.ExtractionType;
 import javafx.beans.property.SimpleStringProperty;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
+import static at.variabilityanalysisgui.parser.InputParser.ExtractionType.JAVA;
 
 public class Element extends Difference {
 
-    public enum ElementType {
-        JAVA, IEC61499
-    }
-
-    private ElementType type;
     private String location;
     private String description;
+    private String seperatorSymbol;
 
-    public Element(String name, ElementType type,  String location, String description) {
+    public Element(String name, ExtractionType type, String location, String description) {
         this.name = new SimpleStringProperty(name);
-        this.type = type;
-        if (type == ElementType.JAVA) {
+        if (type == JAVA) {
             this.location = location.replaceAll("[()]", "");
+            this.seperatorSymbol = "/";
         } else {
             this.location = location;
+            this.seperatorSymbol = ";";
         }
         this.description = description;
-    }
-
-    public ElementType getType() {
-        return type;
     }
 
     public String getLocation() {
@@ -41,11 +32,7 @@ public class Element extends Difference {
     }
 
     public String getSeperaterSymbol() {
-        if (type == ElementType.JAVA) {
-            return "/";
-        } else {
-            return ";";
-        }
+        return seperatorSymbol;
     }
 
     @Override

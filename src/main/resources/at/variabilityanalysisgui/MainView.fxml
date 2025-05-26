@@ -52,6 +52,7 @@
                   <TextField fx:id="searchTextField" promptText="Search..." HBox.hgrow="ALWAYS" />
               </HBox>
               <TreeView fx:id="featureTreeView" style="-fx-padding: 5;" VBox.vgrow="ALWAYS" />
+            <HBox fx:id="hierarchyButtonHBox" maxHeight="20.0" prefHeight="20.0" />
          </children>
       </VBox>
    </center>
