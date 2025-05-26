@@ -6,7 +6,7 @@
 
 <BorderPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="at.variabilityanalysisgui.controller.Controller">
     <bottom>
-        <HBox alignment="CENTER" spacing="20" style="-fx-padding: 15;">
+        <HBox alignment="CENTER" prefHeight="50.0" spacing="20" style="-fx-padding: 15;">
             <Button fx:id="upButton" onAction="#handleHierarchyUpAction" prefWidth="80" text="&lt;-">
                 <tooltip><Tooltip text="Previous Item" /></tooltip>
             </Button>
@@ -41,7 +41,7 @@
         </ScrollPane>
     </right>
    <center>
-      <VBox prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
+      <VBox BorderPane.alignment="CENTER">
          <children>
               <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 10;">
                   <Button fx:id="filterButton" onAction="#handleFilterAction" text="Filter" HBox.hgrow="NEVER">
@@ -51,7 +51,7 @@
                   </Button>
                   <TextField fx:id="searchTextField" promptText="Search..." HBox.hgrow="ALWAYS" />
               </HBox>
-              <TreeView fx:id="featureTreeView" style="-fx-padding: 5;" />
+              <TreeView fx:id="featureTreeView" style="-fx-padding: 5;" VBox.vgrow="ALWAYS" />
          </children>
       </VBox>
    </center>
