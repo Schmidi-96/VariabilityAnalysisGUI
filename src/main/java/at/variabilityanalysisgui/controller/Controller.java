@@ -145,12 +145,22 @@ public class Controller {
     }
 
     private void populateTreeView(List<Group> groups) {
+        Set<FeatureTreeNode> expandedNodes = new HashSet<>();
+        for(TreeItem<FeatureTreeNode> groupItem: rootNode.getChildren()) {
+            expandedNodes.addAll(getExpandedElement(groupItem));
+        }
         rootNode.getChildren().clear();
 
         if (groups == null) return;
 
         for (Group group : groups) {
             populateGroup(group, null);
+            for (FeatureTreeNode node : expandedNodes) {
+                TreeItem<FeatureTreeNode> foundItem = findTreeItemByPath(rootNode, node.getPath());
+                if (foundItem != null) {
+                    foundItem.setExpanded(true);
+                }
+            }
         }
         featureTreeView.getSelectionModel().clearSelection();
     }
@@ -159,10 +169,30 @@ public class Controller {
         Group group = (Group) groupItem.getValue().getData();
         int index = rootNode.getChildren().indexOf(groupItem);
         rootNode.getChildren().remove(index);
+        Set<FeatureTreeNode> expandedNodes = getExpandedElement(groupItem);
         groupItem = populateGroup(group, index);
+        for (FeatureTreeNode node : expandedNodes) {
+            TreeItem<FeatureTreeNode> foundItem = findTreeItemByPath(groupItem, node.getPath());
+            if (foundItem != null) {
+                foundItem.setExpanded(true);
+            }
+        }
         groupItem.setExpanded(true); //TODO: recreate expand/collapse state
     }
 
+    private Set<FeatureTreeNode> getExpandedElement(TreeItem<FeatureTreeNode> groupItem) {
+        Set<FeatureTreeNode> expandedElements = new HashSet<>();
+        for (TreeItem<FeatureTreeNode> child : groupItem.getChildren()) {
+            if (child.getValue().getType() == FeatureTreeNode.DataType.ELEMENT) {
+                expandedElements.add(child.getValue());
+            }
+            expandedElements.addAll(getExpandedElement(child));
+        }
+        if (groupItem.getValue().getType() == FeatureTreeNode.DataType.GROUP && groupItem.isExpanded()) {
+            expandedElements.add(groupItem.getValue());
+        }
+        return expandedElements;
+    }
 
 
     private TreeItem<FeatureTreeNode> populateGroup(Group group, Integer index) {
