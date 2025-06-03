@@ -144,17 +144,18 @@ public class Controller {
         });
     }
 
-    private void populateTreeView(List<Group> groups) {
+    private void populateTreeView(List<Group> groups, List<Element> visibleElements) {
         Set<FeatureTreeNode> expandedNodes = new HashSet<>();
         for(TreeItem<FeatureTreeNode> groupItem: rootNode.getChildren()) {
             expandedNodes.addAll(getExpandedElement(groupItem));
+            System.out.println("Expanded Nodes: " + expandedNodes);
         }
         rootNode.getChildren().clear();
 
         if (groups == null) return;
 
         for (Group group : groups) {
-            populateGroup(group, null);
+            populateGroup(group, visibleElements, null);
             for (FeatureTreeNode node : expandedNodes) {
                 TreeItem<FeatureTreeNode> foundItem = findTreeItemByPath(rootNode, node.getPath());
                 if (foundItem != null) {
@@ -170,14 +171,15 @@ public class Controller {
         int index = rootNode.getChildren().indexOf(groupItem);
         rootNode.getChildren().remove(index);
         Set<FeatureTreeNode> expandedNodes = getExpandedElement(groupItem);
-        groupItem = populateGroup(group, index);
+        System.out.println("Expanded Nodes: " + expandedNodes);
+        groupItem = populateGroup(group, getFilteredElements(), index);
         for (FeatureTreeNode node : expandedNodes) {
             TreeItem<FeatureTreeNode> foundItem = findTreeItemByPath(groupItem, node.getPath());
             if (foundItem != null) {
                 foundItem.setExpanded(true);
             }
         }
-        groupItem.setExpanded(true); //TODO: recreate expand/collapse state
+        groupItem.setExpanded(true);
     }
 
     private Set<FeatureTreeNode> getExpandedElement(TreeItem<FeatureTreeNode> groupItem) {
@@ -195,7 +197,7 @@ public class Controller {
     }
 
 
-    private TreeItem<FeatureTreeNode> populateGroup(Group group, Integer index) {
+    private TreeItem<FeatureTreeNode> populateGroup(Group group, List<Element> visibleElements, Integer index) {
         FeatureTreeNode groupNodeData = new FeatureTreeNode(group, false);
         TreeItem<FeatureTreeNode> groupItem = new TreeItem<>(groupNodeData);
         groupItem.setExpanded(false);
@@ -205,6 +207,9 @@ public class Controller {
         // Add elements as children
         if (group.getElements() != null) {
             for (Element element : group.getElements()) {
+                if(visibleElements != null && !visibleElements.isEmpty() && !visibleElements.contains(element)) {
+                    continue;
+                }
                 FeatureTreeNode elementNodeData = new FeatureTreeNode(element, false);
 
                 // Check if the element is already in the tree
@@ -323,24 +328,17 @@ public class Controller {
 
         if (originalGroups == null) return;
 
-        String lowerCaseFilter;
         if (filterText == null) {
-            lowerCaseFilter = "";
+            filterText = "";
         } else {
-            lowerCaseFilter = filterText.toLowerCase().trim();
+            filterText = filterText.trim();
         }
 
-        if (lowerCaseFilter.isEmpty()) {
-            populateTreeView(originalGroups);
+        if (filterText.isEmpty()) {
+            populateTreeView(getFilteredGroups(true), null);
             return;
         }
-
-        List<Group> filtered = originalGroups.stream()
-                .filter(group -> group.getName().get().toLowerCase().contains(lowerCaseFilter)
-                )
-                .collect(Collectors.toList());
-
-        populateTreeView(filtered);
+        populateTreeView(getFilteredGroups(true), getFilteredElements());
     }
 
 
@@ -552,7 +550,7 @@ public class Controller {
                 originalGroups = parser.parse(selectedFile.getAbsolutePath());
                 hierarchyButtonHBox.getChildren().clear();
                 initializeHierarchyButtons(hierarchyButtonHBox);
-                populateTreeView(originalGroups); // Populate with parsed data
+                populateTreeView(getFilteredGroups(true), null); // Populate with parsed data
                 saveDecisionsMenuItem.setDisable(false);
                 searchTextField.clear();
                 hideDetailsPane(); // Hide details when new file loaded
@@ -751,23 +749,70 @@ public class Controller {
         hbox.getChildren().add(hierarchyTreeButton);
         hierarchyTreeButton.setOnAction(event -> {
             this.viewMode = ViewMode.TREE;
-            populateTreeView(originalGroups);
+            populateTreeView(getFilteredGroups(true), null);
         });
         if (this.parser.getType() == JAVA) {
             Button hierarchyJavaFileButton = new Button("File");
             hbox.getChildren().add(hierarchyJavaFileButton);
             hierarchyJavaFileButton.setOnAction(event -> {
                 this.viewMode = ViewMode.JAVAFILE;
-                populateTreeView(originalGroups);
+                populateTreeView(getFilteredGroups(true), null);
             });
         } else if (this.parser.getType() == IEC61499) {
-            //TODO: IEC61499 specific hierarchy button
+            // IEC61499 specific hierarchy button here
         }
         Button hierarchyFlatButton = new Button("Flat");
         hbox.getChildren().add(hierarchyFlatButton);
         hierarchyFlatButton.setOnAction(event -> {
             this.viewMode = ViewMode.FLAT;
-            populateTreeView(originalGroups);
+            populateTreeView(getFilteredGroups(true), null);
         });
+    }
+
+    private List<Group> getFilteredGroups(boolean includeElementGroupFilter) {
+
+        if (originalGroups == null) return Collections.emptyList();
+
+        String lowerCaseFilter;
+        if (searchTextField.getText() == null) {
+            lowerCaseFilter = "";
+        } else {
+            lowerCaseFilter = searchTextField.getText().toLowerCase().trim();
+        }
+
+        if (lowerCaseFilter.isEmpty()) {
+            populateTreeView(originalGroups, null);
+            return originalGroups;
+        }
+
+        List<Group> filteredGroups = new ArrayList<>();
+        if (includeElementGroupFilter) {
+            for (Element element : getFilteredElements()) {
+                Group parentGroup = findGroupContainingElement(element);
+                if (parentGroup != null && !filteredGroups.contains(parentGroup)) {
+                    filteredGroups.add(parentGroup);
+                }
+            }
+        }
+        filteredGroups.addAll(originalGroups.stream()
+                .filter(group -> group.getName().get().toLowerCase().contains(lowerCaseFilter)
+                )
+                .collect(Collectors.toList()));
+        return filteredGroups;
+    }
+
+    private List<Element> getFilteredElements() {
+        String lowerCaseFilter;
+        if (searchTextField.getText() == null) {
+            lowerCaseFilter = "";
+        } else {
+            lowerCaseFilter = searchTextField.getText().toLowerCase().trim();
+        }
+        return originalGroups.stream()
+                .flatMap(group -> group.getElements().stream())
+                .filter(element -> element.getName().get().toLowerCase().contains(lowerCaseFilter)
+                        || element.getDescription().toLowerCase().contains(lowerCaseFilter)
+                        || element.getLocation().toLowerCase().contains(lowerCaseFilter))
+                .collect(Collectors.toList());
     }
 }
