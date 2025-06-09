@@ -52,7 +52,7 @@
                 <Menu text="File">
                     <items>
                         <MenuItem onAction="#handleLoadAction" text="Load" />
-                        <MenuItem fx:id="saveDecisionsMenuItem" disable="true" onAction="#handleSaveAction" text="Save" />
+                        <MenuItem onAction="#handleSaveAction" text="Save" />
                         <SeparatorMenuItem />
                         <MenuItem onAction="#handleExit" text="Exit" />
                     </items>

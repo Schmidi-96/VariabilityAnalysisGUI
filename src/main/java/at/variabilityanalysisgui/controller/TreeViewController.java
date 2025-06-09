@@ -64,7 +64,6 @@ public class TreeViewController {
         Set<FeatureTreeNode> expandedNodes = new HashSet<>();
         for(TreeItem<FeatureTreeNode> groupItem: rootNode.getChildren()) {
             expandedNodes.addAll(getExpandedElement(groupItem));
-            System.out.println("Expanded Nodes: " + expandedNodes);
         }
         rootNode.getChildren().clear();
 
@@ -76,6 +75,10 @@ public class TreeViewController {
                 TreeItem<FeatureTreeNode> foundItem = findTreeItemByPath(rootNode, node.getPath());
                 if (foundItem != null) {
                     foundItem.setExpanded(true);
+                    while(foundItem.getParent() != null && !foundItem.getParent().isExpanded()) {
+                        foundItem.getParent().setExpanded(true);
+                        foundItem = foundItem.getParent();
+                    }
                 }
             }
         }
@@ -87,12 +90,15 @@ public class TreeViewController {
         int index = rootNode.getChildren().indexOf(groupItem);
         rootNode.getChildren().remove(index);
         Set<FeatureTreeNode> expandedNodes = getExpandedElement(groupItem);
-        System.out.println("Expanded Nodes: " + expandedNodes);
         groupItem = populateGroup(group, controller.getFilteredElements(), index);
         for (FeatureTreeNode node : expandedNodes) {
             TreeItem<FeatureTreeNode> foundItem = findTreeItemByPath(groupItem, node.getPath());
             if (foundItem != null) {
                 foundItem.setExpanded(true);
+                while(foundItem.getParent() != null && !foundItem.getParent().isExpanded()) {
+                    foundItem.getParent().setExpanded(true);
+                    foundItem = foundItem.getParent();
+                }
             }
         }
         groupItem.setExpanded(true);
@@ -252,27 +258,56 @@ public class TreeViewController {
 
     public void initializeHierarchyButtons() {
         hierarchyButtonHBox.getChildren().clear();
-        Button hierarchyTreeButton = new Button("Tree");
+        ToggleButton hierarchyTreeButton = new ToggleButton("Tree");
         hierarchyButtonHBox.getChildren().add(hierarchyTreeButton);
         hierarchyTreeButton.setOnAction(event -> {
-            this.viewMode = ViewMode.TREE;
-            populateTreeView(controller.getFilteredGroups(true), null);
+            if (hierarchyTreeButton.isSelected()) {
+                hierarchyButtonHBox.getChildren().forEach(child -> {
+                    if(child instanceof ToggleButton && child != hierarchyTreeButton) {
+                        ((ToggleButton) child).setSelected(false);
+                    }
+                });
+                this.viewMode = ViewMode.TREE;
+                populateTreeView(controller.getFilteredGroups(true), null);
+            } else {
+                hierarchyTreeButton.setSelected(true);
+            }
         });
+
         if (controller.getParserType() == JAVA) {
-            Button hierarchyJavaFileButton = new Button("File");
+            ToggleButton hierarchyJavaFileButton = new ToggleButton("File");
             hierarchyButtonHBox.getChildren().add(hierarchyJavaFileButton);
             hierarchyJavaFileButton.setOnAction(event -> {
-                this.viewMode = ViewMode.JAVAFILE;
-                populateTreeView(controller.getFilteredGroups(true), null);
+                if (hierarchyJavaFileButton.isSelected()) {
+                    hierarchyButtonHBox.getChildren().forEach(child -> {
+                        if(child instanceof ToggleButton && child != hierarchyJavaFileButton) {
+                            ((ToggleButton) child).setSelected(false);
+                        }
+                    });
+                    this.viewMode = ViewMode.JAVAFILE;
+                    populateTreeView(controller.getFilteredGroups(true), null);
+                } else {
+                    hierarchyJavaFileButton.setSelected(true);
+                }
             });
         } else if (controller.getParserType() == IEC61499) {
             // IEC61499 specific hierarchy button here
         }
-        Button hierarchyFlatButton = new Button("Flat");
+
+        ToggleButton hierarchyFlatButton = new ToggleButton("Flat");
         hierarchyButtonHBox.getChildren().add(hierarchyFlatButton);
         hierarchyFlatButton.setOnAction(event -> {
-            this.viewMode = ViewMode.FLAT;
-            populateTreeView(controller.getFilteredGroups(true), null);
+            if (hierarchyFlatButton.isSelected()) {
+                hierarchyButtonHBox.getChildren().forEach(child -> {
+                    if(child instanceof ToggleButton && child != hierarchyFlatButton) {
+                        ((ToggleButton) child).setSelected(false);
+                    }
+                });
+                this.viewMode = ViewMode.FLAT;
+                populateTreeView(controller.getFilteredGroups(true), null);
+            } else {
+                hierarchyFlatButton.setSelected(true);
+            }
         });
     }
 
