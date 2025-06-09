@@ -74,26 +74,6 @@ public class Controller {
                 detailSubElementLabel, detailCloseButton);
     }
 
-
-
-//    private void filterTreeView(String filterText) {
-//        rootNode.getChildren().clear();
-//
-//        if (originalGroups == null) return;
-//
-//        if (filterText == null) {
-//            filterText = "";
-//        } else {
-//            filterText = filterText.trim();
-//        }
-//
-//        if (filterText.isEmpty()) {
-//            populateTreeView(getFilteredGroups(true), null);
-//            return;
-//        }
-//        populateTreeView(getFilteredGroups(true), getFilteredElements());
-//    }
-
     @FXML
     private void handleLoadAction() {
         FileChooser fileChooser = new FileChooser();

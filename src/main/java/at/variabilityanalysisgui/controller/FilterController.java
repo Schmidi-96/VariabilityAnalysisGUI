@@ -71,7 +71,7 @@ public class FilterController {
 
     private SingleChoiceFilter createOccurrenceFilter() {
         List<String> allOccurrences = controller.getOriginalGroups().stream().map(Group::getOccurrences).flatMap(List::stream).sorted().distinct().toList();
-        return new SingleChoiceFilter("Occurences", allOccurrences, (selected, element) -> {
+        return new SingleChoiceFilter("Occurrences", allOccurrences, (selected, element) -> {
             if (selected == null || selected.isEmpty()) return element;
             Group group = findGroupContainingElement(controller.getOriginalGroups(), element);
             if (group != null && group.getOccurrences().contains(selected)) return element;
@@ -89,7 +89,7 @@ public class FilterController {
                 searchFilter.setEnabled(true);
             }
             if (newVal != null && newVal.isEmpty()) {
-                controller.populateTreeView(getFilteredGroups(true), null);
+                controller.populateTreeView(getFilteredGroups(true), getFilteredElements());
                 return;
             }
             controller.populateTreeView(getFilteredGroups(true), getFilteredElements());
