@@ -45,6 +45,7 @@ public class FilterController {
 
         // setup filter listener and ui elements
         if(controller.getParserType() == IEC61499) {
+            this.filters.add(createOccurrenceFilter());
             this.filters.add(new MultipleChoiceFilter("Element Type", Arrays.asList("Connection", "Function Block"), (selected, element) -> {
                 if (selected == null || selected.isEmpty()) return element;
                 else if (selected.contains("Connection") && element.getName().get().contains(" -> ")) return element;
@@ -55,13 +56,7 @@ public class FilterController {
             this.searchTextField.setDisable(false);
 
         } else if (controller.getParserType() == JAVA) {
-            List<String> allOccurrences = controller.getOriginalGroups().stream().map(Group::getOccurrences).flatMap(List::stream).sorted().distinct().toList();
-            this.filters.add(new SingleChoiceFilter("Occurences", allOccurrences, (selected, element) -> {
-                if (selected == null || selected.isEmpty()) return element;
-                Group group = findGroupContainingElement(controller.getOriginalGroups(), element);
-                if (group != null && group.getOccurrences().contains(selected)) return element;
-                return null;
-            }));
+            this.filters.add(createOccurrenceFilter());
             this.filterButton.setDisable(false);
             this.searchTextField.setDisable(false);
 
@@ -72,6 +67,16 @@ public class FilterController {
 
         setupSearchFilter();
         setupContextMenu();
+    }
+
+    private SingleChoiceFilter createOccurrenceFilter() {
+        List<String> allOccurrences = controller.getOriginalGroups().stream().map(Group::getOccurrences).flatMap(List::stream).sorted().distinct().toList();
+        return new SingleChoiceFilter("Occurences", allOccurrences, (selected, element) -> {
+            if (selected == null || selected.isEmpty()) return element;
+            Group group = findGroupContainingElement(controller.getOriginalGroups(), element);
+            if (group != null && group.getOccurrences().contains(selected)) return element;
+            return null;
+        });
     }
 
     private void setupSearchFilter() {
