@@ -70,7 +70,11 @@ public class FilterController {
             this.searchTextField.setDisable(true);
         }
 
-        // setup search filter
+        setupSearchFilter();
+        setupContextMenu();
+    }
+
+    private void setupSearchFilter() {
         Filter searchFilter = new SearchFilter("Search");
         searchTextField.textProperty().addListener((obs, oldVal, newVal) -> {
             searchFilter.setValue(newVal);
@@ -86,9 +90,9 @@ public class FilterController {
             controller.populateTreeView(getFilteredGroups(true), getFilteredElements());
         });
         this.filters.add(searchFilter);
+    }
 
-
-        // setup context menu
+    private void setupContextMenu() {
         filterContextMenu = new ContextMenu();
         filterContextMenu.setAutoHide(true);
 
