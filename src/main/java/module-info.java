@@ -1,6 +1,6 @@
 module at.variabilityanalysisgui {
-    requires javafx.controls;
     requires javafx.fxml;
+    requires org.controlsfx.controls;
 
 
     opens at.variabilityanalysisgui to javafx.fxml;
@@ -13,4 +13,6 @@ module at.variabilityanalysisgui {
     opens at.variabilityanalysisgui.controller to javafx.fxml;
     exports at.variabilityanalysisgui.view;
     opens at.variabilityanalysisgui.view to javafx.fxml;
+    exports at.variabilityanalysisgui.controller.Filter;
+    opens at.variabilityanalysisgui.controller.Filter to javafx.fxml;
 }

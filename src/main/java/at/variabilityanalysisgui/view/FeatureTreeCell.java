@@ -1,6 +1,7 @@
 package at.variabilityanalysisgui.view;
 
 import at.variabilityanalysisgui.controller.Controller;
+import at.variabilityanalysisgui.controller.TreeViewController;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.input.ClipboardContent;
@@ -18,9 +19,9 @@ public class FeatureTreeCell extends TreeCell<FeatureTreeNode> {
     private final Label typeLabel = new Label();
     private final Button deleteButton = new Button("X");
 
-    private final Controller controller;
+    private final TreeViewController controller;
 
-    public FeatureTreeCell(Controller controller) {
+    public FeatureTreeCell(TreeViewController controller) {
         this.controller = controller;
 
         // Buttons

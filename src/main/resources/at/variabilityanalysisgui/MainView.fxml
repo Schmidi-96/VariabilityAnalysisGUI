@@ -23,7 +23,7 @@
             <TextArea fx:id="detailElementData" prefHeight="100.0" prefWidth="200.0" />
                 <Label fx:id="detailSubElementLabel" style="-fx-font-weight: bold;" text="Sublements:" />
                 <ListView fx:id="detailSubElementListView" prefHeight="200" />
-                <Button onAction="#handleCloseDetails" text="Close Details" />
+                <Button fx:id="detailCloseButton" text="Close Details" />
             </VBox>
         </ScrollPane>
     </right>
@@ -31,7 +31,7 @@
       <VBox BorderPane.alignment="CENTER">
          <children>
               <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 10;">
-                  <Button fx:id="filterButton" onAction="#handleFilterAction" text="Filter" HBox.hgrow="NEVER">
+                  <Button fx:id="filterButton" text="Filter" HBox.hgrow="NEVER">
                       <tooltip>
                      <Tooltip text="Filter Options (Not Implemented Yet)" />
                   </tooltip>
