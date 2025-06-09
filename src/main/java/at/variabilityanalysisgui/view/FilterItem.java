@@ -1,9 +1,10 @@
 package at.variabilityanalysisgui.view;
 
-import at.variabilityanalysisgui.controller.FilterController;
 import at.variabilityanalysisgui.controller.Filter.Filter;
 import at.variabilityanalysisgui.controller.Filter.MultipleChoiceFilter;
+import at.variabilityanalysisgui.controller.Filter.SingleChoiceFilter;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.HBox;
 
@@ -22,18 +23,25 @@ public class FilterItem extends HBox {
             for(String value : multipleChoiceFilter.getSelectableValues()) {
                 ToggleButton button = new ToggleButton(value);
                 button.setOnAction(event -> {
-                    StringBuilder sb = new StringBuilder();
-                    for (ToggleButton toggleButton : toggleButtons) {
-                        if (toggleButton.isSelected()) {
-                            sb.append(toggleButton.getText()).append(";");
-                        }
+                    if (button.isSelected()) {
+                        multipleChoiceFilter.addSelectedValue(value);
+                    } else {
+                        multipleChoiceFilter.removeSelectedValue(value);
                     }
-                    filter.valueProperty().set(sb.toString());
                 });
                 toggleButtons.add(button);
                 this.getChildren().add(button);
             }
-        } // add other types of filters if needed
+        } else if (filter instanceof SingleChoiceFilter singleChoiceFilter) {
+            ChoiceBox<String> choiceBox = new ChoiceBox<>();
+            choiceBox.getItems().addAll(singleChoiceFilter.getSelectableValues());
+            choiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+                if (newValue != null) {
+                    singleChoiceFilter.setValue(newValue);
+                }
+            });
+            this.getChildren().add(choiceBox);
+        }
 
         checkBox.setPadding(new javafx.geometry.Insets(5, 5, 0, 0));
         this.setSpacing(5);

@@ -221,7 +221,7 @@ public class TreeViewController {
                     pathPart = pathParts[i];
                 }
                 Optional<TreeItem<FeatureTreeNode>> existingChild = children.stream()
-                        .filter(child -> child.getValue().getDisplayName().equals(pathPart))
+                        .filter(child -> child.getValue().getTechnicalName().equals(pathPart))
                         .findFirst();
                 if (existingChild.isPresent()) {
                     children = existingChild.get().getChildren();

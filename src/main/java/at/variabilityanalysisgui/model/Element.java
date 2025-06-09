@@ -10,10 +10,12 @@ public class Element extends Difference {
     private String location;
     private String description;
     private String seperatorSymbol;
+    private ExtractionType extractionType;
 
     public Element(String name, ExtractionType type, String location, String description) {
         this.name = new SimpleStringProperty(name);
-        if (type == JAVA) {
+        this.extractionType = type;
+        if (extractionType == JAVA) {
             this.location = location.replaceAll("[()]", "");
             this.seperatorSymbol = "/";
         } else {
@@ -33,6 +35,10 @@ public class Element extends Difference {
 
     public String getSeperaterSymbol() {
         return seperatorSymbol;
+    }
+
+    public ExtractionType getExtractionType() {
+        return extractionType;
     }
 
     @Override

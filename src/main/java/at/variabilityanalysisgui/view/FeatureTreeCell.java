@@ -1,6 +1,5 @@
 package at.variabilityanalysisgui.view;
 
-import at.variabilityanalysisgui.controller.Controller;
 import at.variabilityanalysisgui.controller.TreeViewController;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -82,7 +81,7 @@ public class FeatureTreeCell extends TreeCell<FeatureTreeNode> {
             if (getItem() != null && getItem().getType() == FeatureTreeNode.DataType.ELEMENT) {
                 Dragboard db = startDragAndDrop(TransferMode.MOVE);
                 ClipboardContent content = new ClipboardContent();
-                content.putString(getItem().getDisplayName());
+                content.putString(getItem().getTechnicalName());
                 db.setContent(content);
                 controller.setDraggedItem(getTreeItem());
                 event.consume();

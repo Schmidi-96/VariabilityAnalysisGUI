@@ -4,6 +4,8 @@ import at.variabilityanalysisgui.model.Difference;
 import at.variabilityanalysisgui.model.Group;
 import at.variabilityanalysisgui.model.Element;
 
+import static at.variabilityanalysisgui.parser.InputParser.ExtractionType.JAVA;
+
 public class FeatureTreeNode {
 
     public enum DataType {
@@ -30,8 +32,21 @@ public class FeatureTreeNode {
         return data;
     }
 
-    public String getDisplayName() {
+    public String getTechnicalName() {
         return data.getName().get();
+    }
+
+    public String getDisplayName() {
+        if (data instanceof DifferenceDirectory) {
+            //TODO
+        } else if (data instanceof Element) {
+            if (((Element) data).getExtractionType() == JAVA) {
+                return getTechnicalName() + ": " + ((Element) data).getDescription().split("\n")[0] + "...";
+            }
+        } else if (data instanceof Group) {
+            return getTechnicalName();
+        }
+        return getTechnicalName();
     }
 
     public DataType getType() {
