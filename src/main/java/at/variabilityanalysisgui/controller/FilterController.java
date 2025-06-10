@@ -3,15 +3,11 @@ package at.variabilityanalysisgui.controller;
 import at.variabilityanalysisgui.controller.Filter.Filter;
 import at.variabilityanalysisgui.controller.Filter.MultipleChoiceFilter;
 import at.variabilityanalysisgui.controller.Filter.SearchFilter;
-import at.variabilityanalysisgui.controller.Filter.SingleChoiceFilter;
 import at.variabilityanalysisgui.model.Element;
 import at.variabilityanalysisgui.model.Group;
 import at.variabilityanalysisgui.view.FilterItem;
 import javafx.collections.SetChangeListener;
-import javafx.scene.control.Button;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.CustomMenuItem;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -69,12 +65,12 @@ public class FilterController {
         setupContextMenu();
     }
 
-    private SingleChoiceFilter createOccurrenceFilter() {
+    private MultipleChoiceFilter createOccurrenceFilter() {
         List<String> allOccurrences = controller.getOriginalGroups().stream().map(Group::getOccurrences).flatMap(List::stream).sorted().distinct().toList();
-        return new SingleChoiceFilter("Occurrences", allOccurrences, (selected, element) -> {
+        return new MultipleChoiceFilter("Occurrences", allOccurrences, (selected, element) -> {
             if (selected == null || selected.isEmpty()) return element;
             Group group = findGroupContainingElement(controller.getOriginalGroups(), element);
-            if (group != null && group.getOccurrences().contains(selected)) return element;
+            if (group != null && group.getOccurrences().stream().anyMatch(selected::contains)) return element;
             return null;
         });
     }

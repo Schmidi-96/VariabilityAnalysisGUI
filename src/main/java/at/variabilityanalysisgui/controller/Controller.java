@@ -1,7 +1,9 @@
 package at.variabilityanalysisgui.controller;
 
+import at.variabilityanalysisgui.controller.Filter.Filter;
 import at.variabilityanalysisgui.model.Difference;
 import at.variabilityanalysisgui.model.Group;
+import at.variabilityanalysisgui.view.FilterItem;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 
