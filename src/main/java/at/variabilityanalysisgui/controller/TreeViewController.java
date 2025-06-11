@@ -106,14 +106,14 @@ public class TreeViewController {
 
     private Set<FeatureTreeNode> getExpandedElement(TreeItem<FeatureTreeNode> groupItem) {
         Set<FeatureTreeNode> expandedElements = new HashSet<>();
+        if (!groupItem.isExpanded()){
+            return expandedElements;
+        }
         for (TreeItem<FeatureTreeNode> child : groupItem.getChildren()) {
             if (child.getValue().getType() == FeatureTreeNode.DataType.ELEMENT) {
                 expandedElements.add(child.getValue());
             }
             expandedElements.addAll(getExpandedElement(child));
-        }
-        if (groupItem.getValue().getType() == FeatureTreeNode.DataType.GROUP && groupItem.isExpanded()) {
-            expandedElements.add(groupItem.getValue());
         }
         return expandedElements;
     }
