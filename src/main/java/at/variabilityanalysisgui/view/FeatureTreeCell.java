@@ -62,13 +62,16 @@ public class FeatureTreeCell extends TreeCell<FeatureTreeNode> {
                 typeLabel.setText("G");
                 typeLabel.setStyle("-fx-text-fill: #A0A0A0;");
             }
-            hbox.getChildren().setAll(nameLabel, typeLabel, pathLabel );
+            hbox.getChildren().setAll(nameLabel, typeLabel, pathLabel);
 
             if (item.getData() != null) {
                 Region spacer = new Region();
                 HBox.setHgrow(spacer, Priority.ALWAYS);
-                hbox.getChildren().addAll(spacer);
-                hbox.getChildren().addAll(deleteButton);
+                hbox.getChildren().add(spacer);
+                hbox.getChildren().add(deleteButton);
+                pathLabel.setMinWidth(0);
+                hbox.setMinWidth(0);
+                hbox.setPrefWidth(100);
             }
 
             setGraphic(hbox);
