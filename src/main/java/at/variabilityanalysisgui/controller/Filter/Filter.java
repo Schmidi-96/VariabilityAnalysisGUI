@@ -38,7 +38,12 @@ public abstract class Filter {
 
     public abstract Element filter(Element element);
 
-    public abstract Group filter(Group group);
+    public Group filter(Group group) {
+        if(group.getElements().stream().anyMatch((e -> filter(e) != null))) {
+            return group;
+        }
+        return null;
+    }
 
     public StringProperty valueProperty() {
         return value;

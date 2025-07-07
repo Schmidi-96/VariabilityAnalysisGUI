@@ -1,7 +1,6 @@
 package at.variabilityanalysisgui.controller.Filter;
 
 import at.variabilityanalysisgui.model.Element;
-import at.variabilityanalysisgui.model.Group;
 
 import java.util.List;
 import java.util.function.BiFunction;
@@ -23,13 +22,5 @@ public class SingleChoiceFilter extends Filter {
     @Override
     public Element filter(Element element) {
         return filterFunction.apply(this.getValue(), element);
-    }
-
-    @Override
-    public Group filter(Group group) {
-        if(group.getElements().stream().anyMatch((e -> filter(e) != null))) {
-            return group;
-        }
-        return null;
     }
 }

@@ -26,6 +26,9 @@ import static at.variabilityanalysisgui.parser.InputParser.ExtractionType.JAVA;
 
 public class Controller {
 
+    public static final String OCCURRENCE_HEADER_JAVA = "Occurrence:";
+    public static final String OCCURRENCE_HEADER_IEC = "Variants:";
+    public static final String ELEMENTS_HEADER = "Elements:";
     private TreeViewController treeViewController;
     private FilterController filterController;
     private DetailsController detailsController;
@@ -120,9 +123,9 @@ public class Controller {
                 // Occurrences
                 if (group.getOccurrences() != null && !group.getOccurrences().isEmpty()) {
                     if (group.getElements().size() > 1 && this.parser.getType() == JAVA) {
-                        writer.write("Occurrence:");
+                        writer.write(OCCURRENCE_HEADER_JAVA);
                     } else {
-                        writer.write("Variants:");
+                        writer.write(OCCURRENCE_HEADER_IEC);
                     }
                     writer.newLine();
                     for (String occurrence : group.getOccurrences()) {
@@ -132,7 +135,7 @@ public class Controller {
                 }
 
                 // Elements
-                writer.write("Elements:");
+                writer.write(ELEMENTS_HEADER);
                 writer.newLine();
                 for (Element element : group.getElements()) {
                     if (this.parser.getType() == JAVA) {

@@ -1,7 +1,6 @@
 package at.variabilityanalysisgui.controller.Filter;
 
 import at.variabilityanalysisgui.model.Element;
-import at.variabilityanalysisgui.model.Group;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 
@@ -40,13 +39,5 @@ public class MultipleChoiceFilter extends Filter{
     @Override
     public Element filter(Element element) {
         return filterFunction.apply(selectedValues, element);
-    }
-
-    @Override
-    public Group filter(Group group) {
-        if(group.getElements().stream().anyMatch((e -> filter(e) != null))) {
-            return group;
-        }
-        return null;
     }
 }

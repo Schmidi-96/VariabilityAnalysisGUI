@@ -14,6 +14,12 @@ import static at.variabilityanalysisgui.parser.InputParser.ExtractionType.*;
 
 public class InputParser {
 
+    public static final String GROUP_PREFIX = "Group";
+    public static final String CORE_PREFIX = "Core";
+    public static final String OCCURRENCES_HEADER = "Occurrences:";
+    public static final String VARIANTS_HEADER = "Variants:";
+    public static final String ELEMENTS_HEADER = "Elements:";
+
     public ExtractionType getType() {
         return type;
     }
@@ -38,7 +44,7 @@ public class InputParser {
             while ((fullLine = reader.readLine()) != null) {
                 line = fullLine.trim();
 
-                if (line.startsWith("Group") || line.startsWith("Core")) { // New Group
+                if (line.startsWith(GROUP_PREFIX) || line.startsWith(CORE_PREFIX)) { // New Group
                     if (currentGroup != null && !codeSnippet.isEmpty()) {
                         // Assuming any leftover snippet must be a Java element
                         Element previousElement = parseJavaElement(codeSnippet.toString().trim());
@@ -54,10 +60,10 @@ public class InputParser {
                     currentState = null; // Reset state for the new group
 
 
-                } else if (line.startsWith("Occurrences:") || line.startsWith("Variants:")) { // Occurrences/Variants
+                } else if (line.startsWith(OCCURRENCES_HEADER) || line.startsWith(VARIANTS_HEADER)) { // Occurrences/Variants
                     if (currentGroup != null) currentState = ParseState.READING_OCCURRENCES;
 
-                } else if (line.startsWith("Elements:")) { // Element
+                } else if (line.startsWith(ELEMENTS_HEADER)) { // Element
                     if (currentGroup != null) currentState = ParseState.READING_ELEMENTS;
 
                 } else if (!line.isEmpty() && currentGroup != null && currentState != null) { // Content line
