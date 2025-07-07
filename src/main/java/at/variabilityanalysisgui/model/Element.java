@@ -7,20 +7,20 @@ import static at.variabilityanalysisgui.parser.InputParser.ExtractionType.JAVA;
 
 public class Element extends Difference {
 
-    private String location;
-    private String description;
-    private String seperatorSymbol;
-    private ExtractionType extractionType;
+    private final String location;
+    private final String description;
+    private final String separatorSymbol;
+    private final ExtractionType extractionType;
 
     public Element(String name, ExtractionType type, String location, String description) {
         this.name = new SimpleStringProperty(name);
         this.extractionType = type;
         if (extractionType == JAVA) {
             this.location = location.replaceAll("[()]", "");
-            this.seperatorSymbol = "/";
+            this.separatorSymbol = "/";
         } else {
             this.location = location;
-            this.seperatorSymbol = ";";
+            this.separatorSymbol = ";";
         }
         this.description = description;
     }
@@ -33,8 +33,8 @@ public class Element extends Difference {
         return description;
     }
 
-    public String getSeperaterSymbol() {
-        return seperatorSymbol;
+    public String getSeparateSymbol() {
+        return separatorSymbol;
     }
 
     public ExtractionType getExtractionType() {

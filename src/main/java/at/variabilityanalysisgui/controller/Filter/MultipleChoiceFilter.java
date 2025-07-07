@@ -3,7 +3,6 @@ package at.variabilityanalysisgui.controller.Filter;
 import at.variabilityanalysisgui.model.Element;
 import at.variabilityanalysisgui.model.Group;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
 
 import java.util.List;

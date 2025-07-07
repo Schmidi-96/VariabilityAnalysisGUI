@@ -8,7 +8,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static at.variabilityanalysisgui.parser.InputParser.ExtractionType.*;
@@ -40,7 +39,7 @@ public class InputParser {
                 line = fullLine.trim();
 
                 if (line.startsWith("Group") || line.startsWith("Core")) { // New Group
-                    if (currentGroup != null && codeSnippet.length() > 0) {
+                    if (currentGroup != null && !codeSnippet.isEmpty()) {
                         // Assuming any leftover snippet must be a Java element
                         Element previousElement = parseJavaElement(codeSnippet.toString().trim());
                         if (previousElement != null) {
@@ -78,19 +77,19 @@ public class InputParser {
 
                             if(this.type == JAVA) {
                                 if (JAVA_ELEMENT_PATTERN.matcher(line).matches()) { // Java location
-                                    if (codeSnippet.length() > 0) {
+                                    if (!codeSnippet.isEmpty()) {
                                         currentGroup.addElement(parseJavaElement(codeSnippet.toString().trim()));
                                         codeSnippet = new StringBuilder();
                                     }
-                                    codeSnippet.append(line).append("\n");;
+                                    codeSnippet.append(line).append("\n");
                                 } else { // Java code
-                                    if (codeSnippet.length() > 0) {
+                                    if (!codeSnippet.isEmpty()) {
                                         codeSnippet.append(fullLine).append("\n");
                                     }
                                 }
 
                             } else if (this.type == IEC61499) { // IEC Element
-                                if (codeSnippet.length() > 0) {
+                                if (!codeSnippet.isEmpty()) {
                                     Element previousElement = parseJavaElement(codeSnippet.toString().trim());
                                     if (previousElement != null) {
                                         currentGroup.addElement(previousElement);
@@ -111,7 +110,7 @@ public class InputParser {
                 }
             }
         }
-        if (currentGroup != null && codeSnippet.length() > 0) {
+        if (currentGroup != null && !codeSnippet.isEmpty()) {
             Element lastElement = parseJavaElement(codeSnippet.toString().trim());
             if (lastElement != null) {
                 currentGroup.addElement(lastElement);
@@ -131,10 +130,11 @@ public class InputParser {
             String name = line;
             int lastSlash = line.lastIndexOf('/');
             int colon = line.indexOf(':', Math.max(lastSlash, 0));
+            String substring = line.substring(colon + 1, line.length() - 1);
             if (lastSlash != -1 && colon > lastSlash) {
-                name = line.substring(lastSlash + 1, colon) + ":" + line.substring(colon + 1, line.length()-1);
+                name = line.substring(lastSlash + 1, colon) + ":" + substring;
             } else if (colon > 0){
-                name = "Line " + line.substring(colon+1, line.length()-1);
+                name = "Line " + substring;
             }
             return new Element(name, JAVA, line, description.toString());
         }

@@ -37,9 +37,7 @@ public class FeatureTreeNode {
     }
 
     public String getDisplayName() {
-        if (data instanceof DifferenceDirectory) {
-            //TODO
-        } else if (data instanceof Element) {
+        if (data instanceof Element) {
             if (((Element) data).getExtractionType() == JAVA) {
                 return getTechnicalName() + ": " + ((Element) data).getDescription().split("\n")[0] + "...";
             }
@@ -63,7 +61,7 @@ public class FeatureTreeNode {
         if (data instanceof DifferenceDirectory) {
             return ((DifferenceDirectory) data).getPath();
         } else if (data instanceof Element) {
-            return ((Element) data).getLocation() + ((Element) data).getSeperaterSymbol() + data.getName().get();
+            return ((Element) data).getLocation() + ((Element) data).getSeparateSymbol() + data.getName().get();
         } else if (data instanceof Group) {
             return data.getName().get();
         }

@@ -12,6 +12,7 @@ import javafx.scene.control.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static at.variabilityanalysisgui.controller.Controller.findGroupContainingElement;
@@ -20,12 +21,12 @@ import static at.variabilityanalysisgui.parser.InputParser.ExtractionType.JAVA;
 
 public class FilterController {
 
-    private TextField searchTextField;
-    private Button filterButton;
+    private final TextField searchTextField;
+    private final Button filterButton;
 
     private ContextMenu filterContextMenu;
-    private List<Filter> filters = new ArrayList<>();
-    private Controller controller;
+    private final List<Filter> filters = new ArrayList<>();
+    private final Controller controller;
 
     public FilterController(Controller controller, TextField searchTextField, Button filterButton) {
         this.controller = controller;
@@ -79,16 +80,12 @@ public class FilterController {
         Filter searchFilter = new SearchFilter("Search");
         searchTextField.textProperty().addListener((obs, oldVal, newVal) -> {
             searchFilter.setValue(newVal);
-            if (newVal == null || newVal.trim().isEmpty()) {
-                searchFilter.setEnabled(false);
-            } else {
-                searchFilter.setEnabled(true);
-            }
+            searchFilter.setEnabled(newVal != null && !newVal.trim().isEmpty());
             if (newVal != null && newVal.isEmpty()) {
-                controller.populateTreeView(getFilteredGroups(true), getFilteredElements());
+                controller.populateTreeView(getFilteredGroups(), getFilteredElements());
                 return;
             }
-            controller.populateTreeView(getFilteredGroups(true), getFilteredElements());
+            controller.populateTreeView(getFilteredGroups(), getFilteredElements());
         });
         this.filters.add(searchFilter);
     }
@@ -101,19 +98,17 @@ public class FilterController {
             if (filter instanceof MultipleChoiceFilter multipleChoiceFilter) {
                 multipleChoiceFilter.getSelectedValues().addListener((SetChangeListener<String>) change -> {
                     filter.setEnabled(!change.getSet().isEmpty());
-                    controller.populateTreeView(getFilteredGroups(true), getFilteredElements());
+                    controller.populateTreeView(getFilteredGroups(), getFilteredElements());
                 });
             } else { // SearchFilter and SingleChoiceFilter
                 filter.valueProperty().addListener((obs, oldVal, newVal) -> {
                     filter.setEnabled(newVal != null && !newVal.trim().isEmpty());
-                    controller.populateTreeView(getFilteredGroups(true), getFilteredElements());
+                    controller.populateTreeView(getFilteredGroups(), getFilteredElements());
                 });
             }
 
             if(!(filter instanceof SearchFilter)) {
-                filter.enabledProperty().addListener((obs, oldVal, newVal) -> {
-                    controller.populateTreeView(getFilteredGroups(true), getFilteredElements());
-                });
+                filter.enabledProperty().addListener((obs, oldVal, newVal) -> controller.populateTreeView(getFilteredGroups(), getFilteredElements()));
                 CustomMenuItem customMenuItem = new CustomMenuItem(new FilterItem(filter), false);
                 filterContextMenu.getItems().add(customMenuItem);
             }
@@ -129,7 +124,7 @@ public class FilterController {
         });
     }
 
-    public List<Group> getFilteredGroups(boolean includeElementGroupFilter) {
+    public List<Group> getFilteredGroups() {
         List<Group> filteredGroups = controller.getOriginalGroups();
         for(Filter filter : filters) {
             if (filter.isEnabled()) {
@@ -145,7 +140,7 @@ public class FilterController {
             if (filter.isEnabled()) {
                 elements = elements.stream()
                         .map(filter::filter)
-                        .filter(e -> e != null)
+                        .filter(Objects::nonNull)
                         .collect(Collectors.toList());
             }
         }

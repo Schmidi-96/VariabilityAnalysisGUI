@@ -17,11 +17,11 @@
             </HBox>
             <Label fx:id="detailLocationLabel" style="-fx-font-weight: bold;" text="Location" />
             <TextArea fx:id="detailLocationTextArea" prefHeight="50.0" prefWidth="200.0" />
-                <Label fx:id="detailOccurrenceLabel" style="-fx-font-weight: bold;" text="Occurrences:" />
+                <Label fx:id="detailOccurrenceLabel" style="-fx-font-weight: bold;" text="Occurrences" />
                 <ListView fx:id="detailOccurrencesListView" prefHeight="100.0" />
-            <Label fx:id="detailElementLabel" text="Element" />
+            <Label fx:id="detailElementLabel" style="-fx-font-weight: bold;" text="Element" />
             <TextArea fx:id="detailElementData" prefHeight="100.0" prefWidth="200.0" />
-                <Label fx:id="detailSubElementLabel" style="-fx-font-weight: bold;" text="Sublements:" />
+                <Label fx:id="detailSubElementLabel" style="-fx-font-weight: bold;" text="Sublements" />
                 <ListView fx:id="detailSubElementListView" prefHeight="200" />
                 <Button fx:id="detailCloseButton" text="Close Details" />
             </VBox>

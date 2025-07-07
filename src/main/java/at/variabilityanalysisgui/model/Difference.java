@@ -1,6 +1,5 @@
 package at.variabilityanalysisgui.model;
 
-import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public class Difference {

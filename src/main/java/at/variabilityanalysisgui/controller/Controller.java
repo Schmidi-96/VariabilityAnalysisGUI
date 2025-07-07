@@ -1,15 +1,12 @@
 package at.variabilityanalysisgui.controller;
 
-import at.variabilityanalysisgui.controller.Filter.Filter;
 import at.variabilityanalysisgui.model.Difference;
 import at.variabilityanalysisgui.model.Group;
-import at.variabilityanalysisgui.view.FilterItem;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.application.Platform;
 
@@ -40,11 +37,9 @@ public class Controller {
     // DetailsController
     @FXML private ListView<Element> detailSubElementListView;
     @FXML private ScrollPane detailScrollPane;
-    @FXML private VBox detailsPane;
     @FXML private HBox detailsNameHBox;
     @FXML private Label detailLocationLabel;
     @FXML private TextArea detailLocationTextArea;
-    @FXML private Label detailGroupNameLabel;
     @FXML private TextField detailGroupNameTextField;
     @FXML private Label detailOccurrenceLabel;
     @FXML private ListView<String> detailOccurrencesListView;
@@ -57,7 +52,7 @@ public class Controller {
     @FXML public HBox hierarchyButtonHBox;
     @FXML private TreeView<FeatureTreeNode> featureTreeView;
 
-    private InputParser parser = new InputParser();
+    private final InputParser parser = new InputParser();
     private List<Group> originalGroups;
 
     public Map<InputParser.ExtractionType, String> seperatorMap = Map.of(JAVA, "/", IEC61499, ";");
@@ -88,7 +83,7 @@ public class Controller {
             try {
                 originalGroups = parser.parse(selectedFile.getAbsolutePath());
                 treeViewController.initializeHierarchyButtons();
-                treeViewController.populateTreeView(filterController.getFilteredGroups(true), null); // Populate with parsed data
+                treeViewController.populateTreeView(filterController.getFilteredGroups(), null); // Populate with parsed data
                 detailsController.hideDetailsPane();
                 filterController.setupFilterListener();
             } catch (IOException e) {
@@ -209,16 +204,12 @@ public class Controller {
         treeViewController.populateTreeView(groups, elements);
     }
 
-    public List<Group> getFilteredGroups(boolean includeElementGroupFilter) {
-        return filterController.getFilteredGroups(includeElementGroupFilter);
+    public List<Group> getFilteredGroups() {
+        return filterController.getFilteredGroups();
     }
 
     public List<Element> getFilteredElements() {
         return filterController.getFilteredElements();
-    }
-
-    public void refreshGroup(TreeItem<FeatureTreeNode> groupItem) {
-        treeViewController.refreshGroup(groupItem);
     }
 
     public void showDetailsPane(Difference data, TreeItem<FeatureTreeNode> newValue) {

@@ -6,17 +6,11 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.util.Pair;
-
-import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.stream.Collectors;
 
 public abstract class Filter {
     private final String name;
-    private BooleanProperty enabled =new SimpleBooleanProperty(false);
-    private StringProperty value = new SimpleStringProperty("");
+    private final BooleanProperty enabled =new SimpleBooleanProperty(false);
+    private final StringProperty value = new SimpleStringProperty("");
 
     public Filter(String name) {
         this.name = name;

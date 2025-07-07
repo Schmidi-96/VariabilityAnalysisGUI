@@ -22,9 +22,9 @@ public class TreeViewController {
         TREE, FLAT, JAVAFILE
     }
 
-    private TreeView<FeatureTreeNode> featureTreeView;
+    private final TreeView<FeatureTreeNode> featureTreeView;
 
-    private TreeItem<FeatureTreeNode> rootNode;
+    private final TreeItem<FeatureTreeNode> rootNode;
 
     public HBox hierarchyButtonHBox;
 
@@ -71,28 +71,14 @@ public class TreeViewController {
 
         for (Group group : groups) {
             populateGroup(group, visibleElements, null);
-            for (FeatureTreeNode node : expandedNodes) {
-                TreeItem<FeatureTreeNode> foundItem = findTreeItemByPath(rootNode, node.getPath());
-                if (foundItem != null) {
-                    foundItem.setExpanded(true);
-                    while(foundItem.getParent() != null && !foundItem.getParent().isExpanded()) {
-                        foundItem.getParent().setExpanded(true);
-                        foundItem = foundItem.getParent();
-                    }
-                }
-            }
+            expandNodes(expandedNodes, rootNode);
         }
         featureTreeView.getSelectionModel().clearSelection();
     }
 
-    public void refreshGroup(TreeItem<FeatureTreeNode> groupItem) {
-        Group group = (Group) groupItem.getValue().getData();
-        int index = rootNode.getChildren().indexOf(groupItem);
-        rootNode.getChildren().remove(index);
-        Set<FeatureTreeNode> expandedNodes = getExpandedElement(groupItem);
-        groupItem = populateGroup(group, controller.getFilteredElements(), index);
+    private void expandNodes(Set<FeatureTreeNode> expandedNodes, TreeItem<FeatureTreeNode> rootNode) {
         for (FeatureTreeNode node : expandedNodes) {
-            TreeItem<FeatureTreeNode> foundItem = findTreeItemByPath(groupItem, node.getPath());
+            TreeItem<FeatureTreeNode> foundItem = findTreeItemByPath(rootNode, node.getPath());
             if (foundItem != null) {
                 foundItem.setExpanded(true);
                 while(foundItem.getParent() != null && !foundItem.getParent().isExpanded()) {
@@ -101,6 +87,15 @@ public class TreeViewController {
                 }
             }
         }
+    }
+
+    public void refreshGroup(TreeItem<FeatureTreeNode> groupItem) {
+        Group group = (Group) groupItem.getValue().getData();
+        int index = rootNode.getChildren().indexOf(groupItem);
+        rootNode.getChildren().remove(index);
+        Set<FeatureTreeNode> expandedNodes = getExpandedElement(groupItem);
+        groupItem = populateGroup(group, controller.getFilteredElements(), index);
+        expandNodes(expandedNodes, groupItem);
         groupItem.setExpanded(true);
     }
 
@@ -116,15 +111,6 @@ public class TreeViewController {
             expandedElements.addAll(getExpandedElement(child));
         }
         return expandedElements;
-    }
-
-    public void setRootNode(TreeItem<FeatureTreeNode> rootNode) {
-        this.rootNode = rootNode;
-        featureTreeView.setRoot(rootNode);
-    }
-
-    public TreeItem<FeatureTreeNode> getRootNode() {
-        return rootNode;
     }
 
     public TreeView<FeatureTreeNode> getFeatureTreeView() {
@@ -147,14 +133,13 @@ public class TreeViewController {
                 FeatureTreeNode elementNodeData = new FeatureTreeNode(element, false);
 
                 // Check if the element is already in the tree
-                TreeItem<FeatureTreeNode> existingItem = findTreeItemByPath(groupItem, element.getLocation() + element.getSeperaterSymbol() + element.getName().get());
+                TreeItem<FeatureTreeNode> existingItem = findTreeItemByPath(groupItem, element.getLocation() + element.getSeparateSymbol() + element.getName().get());
                 if (existingItem != null && existingItem.getValue().isDirectory()) {
                     elementNodeData.setDirectory(true);
                     existingItem.setValue(elementNodeData);
                 } else {
                     TreeItem<FeatureTreeNode> elementItem = new TreeItem<>(elementNodeData);
                     ObservableList<TreeItem<FeatureTreeNode>> children = groupItem.getChildren();
-                    TreeItem<FeatureTreeNode> parent = null;
 
                     while (true) {
                         Optional<TreeItem<FeatureTreeNode>> c = children.stream()
@@ -170,7 +155,6 @@ public class TreeViewController {
                                 .findFirst();
                         if (c.isPresent()) {
                             children = c.get().getChildren();
-                            parent = c.get();
                         } else {
                             break;
                         }
@@ -268,7 +252,7 @@ public class TreeViewController {
                     }
                 });
                 this.viewMode = ViewMode.TREE;
-                populateTreeView(controller.getFilteredGroups(true), null);
+                populateTreeView(controller.getFilteredGroups(), null);
             } else {
                 hierarchyTreeButton.setSelected(true);
             }
@@ -285,7 +269,7 @@ public class TreeViewController {
                         }
                     });
                     this.viewMode = ViewMode.JAVAFILE;
-                    populateTreeView(controller.getFilteredGroups(true), null);
+                    populateTreeView(controller.getFilteredGroups(), null);
                 } else {
                     hierarchyJavaFileButton.setSelected(true);
                 }
@@ -304,7 +288,7 @@ public class TreeViewController {
                     }
                 });
                 this.viewMode = ViewMode.FLAT;
-                populateTreeView(controller.getFilteredGroups(true), null);
+                populateTreeView(controller.getFilteredGroups(), null);
             } else {
                 hierarchyFlatButton.setSelected(true);
             }
@@ -336,24 +320,22 @@ public class TreeViewController {
                 }
                 deleteItem(item);
             }
-            if (item.getValue().getType() == FeatureTreeNode.DataType.ELEMENT) {
-                Element element = (Element) item.getValue().getData();
-                Group group = findGroupContainingElement(controller.getOriginalGroups(), element);
-                if (group != null) {
-                    group.getElements().remove(element);
-                    TreeItem<FeatureTreeNode> groupItem = findTreeItemByPath(rootNode, group.getName().get());
-                    refreshGroup(groupItem);
-                }
-            }
+            removeElementAndRefreshGroup(item);
 
         }
         if (result.isPresent() && result.get() == onlyDirectoryButton) {
-            if (item.getValue().getType() == FeatureTreeNode.DataType.ELEMENT) {
-                Element element = (Element) item.getValue().getData();
-                Group group = findGroupContainingElement(controller.getOriginalGroups(), element);
-                if (group != null) {
-                    group.getElements().remove(element);
-                    TreeItem<FeatureTreeNode> groupItem = findTreeItemByPath(rootNode, group.getName().get());
+            removeElementAndRefreshGroup(item);
+        }
+    }
+
+    private void removeElementAndRefreshGroup(TreeItem<FeatureTreeNode> item) {
+        if (item.getValue().getType() == FeatureTreeNode.DataType.ELEMENT) {
+            Element element = (Element) item.getValue().getData();
+            Group group = findGroupContainingElement(controller.getOriginalGroups(), element);
+            if (group != null) {
+                group.getElements().remove(element);
+                TreeItem<FeatureTreeNode> groupItem = findTreeItemByPath(rootNode, group.getName().get());
+                if (groupItem != null) {
                     refreshGroup(groupItem);
                 }
             }
@@ -394,7 +376,7 @@ public class TreeViewController {
             return;
         }
 
-        // Open dialogue if the subelements should also be moved or if the subelement should kept in the current group, if the element is a directory
+        // Open dialogue for recursive move of directory
         if (elementItem.getValue().isDirectory()) {
             Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
             alert.setTitle("Move Directory");

@@ -11,14 +11,6 @@ public class SearchFilter extends Filter {
         this.includeElements = true;
     }
 
-    public void setIncludeElements(boolean includeElements) {
-        this.includeElements = includeElements;
-    }
-
-    public boolean getIncludeElements() {
-        return includeElements;
-    }
-
     @Override
     public Element filter(Element element) {
         String lowerCaseFilter;

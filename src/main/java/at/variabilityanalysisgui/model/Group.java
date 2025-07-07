@@ -6,11 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Group extends Difference {
-    private List<String> occurrences;
-    private List<Element> elements;
+    private final List<String> occurrences;
+    private final List<Element> elements;
 
     public Group(String name) {
-        this.name = new SimpleStringProperty(name);;
+        this.name = new SimpleStringProperty(name);
         this.occurrences = new ArrayList<>();
         this.elements = new ArrayList<>();
     }
