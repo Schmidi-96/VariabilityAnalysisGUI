@@ -70,8 +70,8 @@ public class Controller {
 
         this.treeViewController = new TreeViewController(this, featureTreeView, hierarchyButtonHBox);
         this.filterController = new FilterController(this, searchTextField, filterButton);
-        this.detailsController = new DetailsController(this, detailSubElementListView, detailScrollPane, detailsPane, detailsNameHBox,
-                detailLocationLabel, detailLocationTextArea, detailGroupNameLabel, detailGroupNameTextField,
+        this.detailsController = new DetailsController(this, detailSubElementListView, detailScrollPane, detailsNameHBox,
+                detailLocationLabel, detailLocationTextArea, detailGroupNameTextField,
                 detailOccurrenceLabel, detailOccurrencesListView, detailElementLabel, detailElementData,
                 detailSubElementLabel, detailCloseButton);
     }
