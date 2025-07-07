@@ -43,12 +43,7 @@ public class FilterController {
         // setup filter listener and ui elements
         if(controller.getParserType() == IEC61499) {
             this.filters.add(createOccurrenceFilter());
-            this.filters.add(new MultipleChoiceFilter("Element Type", Arrays.asList("Connection", "Function Block"), (selected, element) -> {
-                if (selected == null || selected.isEmpty()) return element;
-                else if (selected.contains("Connection") && element.getName().get().contains(" -> ")) return element;
-                else if (selected.contains("Function Block") && !element.getName().get().contains(" -> ")) return element;
-                return null;
-            }));
+            this.filters.add(createConnectionBlockFilter());
             this.filterButton.setDisable(false);
             this.searchTextField.setDisable(false);
 
@@ -64,6 +59,15 @@ public class FilterController {
 
         setupSearchFilter();
         setupContextMenu();
+    }
+
+    private MultipleChoiceFilter createConnectionBlockFilter() {
+        return new MultipleChoiceFilter("Element Type", Arrays.asList("Connection", "Function Block"), (selected, element) -> {
+            if (selected == null || selected.isEmpty()) return element;
+            else if (selected.contains("Connection") && element.getName().get().contains(" -> ")) return element;
+            else if (selected.contains("Function Block") && !element.getName().get().contains(" -> ")) return element;
+            return null;
+        });
     }
 
     private MultipleChoiceFilter createOccurrenceFilter() {
