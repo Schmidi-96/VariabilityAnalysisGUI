@@ -1,3 +1,9 @@
+/***
+ The MIT License (MIT)
+
+ Copyright (c) 2025 Michael Schmidhammer
+ */
+
 module at.variabilityanalysisgui {
     requires javafx.fxml;
     requires org.controlsfx.controls;

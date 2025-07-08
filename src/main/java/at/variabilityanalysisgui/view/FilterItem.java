@@ -1,3 +1,9 @@
+/***
+ The MIT License (MIT)
+
+ Copyright (c) 2025 Michael Schmidhammer
+ */
+
 package at.variabilityanalysisgui.view;
 
 import at.variabilityanalysisgui.controller.Filter.Filter;

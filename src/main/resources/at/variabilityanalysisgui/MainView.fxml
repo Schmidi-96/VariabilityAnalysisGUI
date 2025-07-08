@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+ The MIT License (MIT)
+
+ Copyright (c) 2025 Michael Schmidhammer
+-->
 
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>

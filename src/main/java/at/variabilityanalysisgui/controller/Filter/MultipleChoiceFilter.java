@@ -1,3 +1,9 @@
+/***
+ Copyright (c) 2025 Michael Schmidhammer
+
+ License MIT
+ */
+
 package at.variabilityanalysisgui.controller.Filter;
 
 import at.variabilityanalysisgui.model.Element;
